@@ -116,6 +116,44 @@ export async function updateTestDrive(id: number, body: { status?: string; notes
   });
 }
 
+/** Obtener todas las escenas */
+export async function getScenes(): Promise<ApiScene[]> {
+  return fetchApi<ApiScene[]>('/scenes');
+}
+
+/** Obtener escena activa (para la web) */
+export async function getActiveScene(): Promise<ApiScene | null> {
+  return fetchApi<ApiScene | null>('/scenes/active');
+}
+
+/** Crear escena */
+export async function createScene(body: ApiSceneCreate): Promise<ApiScene> {
+  return fetchApi<ApiScene>('/scenes', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Actualizar escena */
+export async function updateScene(id: string, body: ApiSceneUpdate): Promise<ApiScene> {
+  return fetchApi<ApiScene>(`/scenes/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Activar escena (mostrar en la web) */
+export async function setActiveScene(id: string): Promise<ApiScene> {
+  return fetchApi<ApiScene>(`/scenes/${id}/activate`, {
+    method: 'PATCH',
+  });
+}
+
+/** Eliminar escena */
+export async function deleteScene(id: string): Promise<void> {
+  return fetchApi<void>(`/scenes/${id}`, { method: 'DELETE' });
+}
+
 // Tipos de la API
 export interface ApiVehicle {
   id: string;
@@ -187,3 +225,23 @@ export interface ApiTestDrive {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ApiScene {
+  id: string;
+  name: string;
+  backgroundUrl: string;
+  positions: Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }>;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiSceneCreate {
+  name: string;
+  backgroundUrl?: string;
+  positions?: Record<string, unknown>;
+  isActive?: boolean;
+}
+
+export type ApiSceneUpdate = Partial<ApiSceneCreate>;

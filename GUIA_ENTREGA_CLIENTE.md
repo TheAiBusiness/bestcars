@@ -14,8 +14,8 @@ El proyecto consta de **tres partes** que trabajan juntas:
 
 El backend **sirve a ambos**:
 
-- **Página web**: Lista de vehículos, formulario de contacto, solicitud de prueba de manejo
-- **Panel admin**: Login, CRUD de vehículos, listado de contactos y solicitudes de prueba
+- **Página web**: Lista de vehículos, formulario de contacto, solicitud de prueba de manejo, escenas (composición del garaje)
+- **Panel admin**: Login, CRUD vehículos, editor de escenas, listado de contactos y solicitudes de prueba
 
 ## Estado actual de integración
 

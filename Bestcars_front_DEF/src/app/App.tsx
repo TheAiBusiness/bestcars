@@ -6,6 +6,7 @@ import { Footer } from "./components/Footer";
 const HomePage = lazy(() => import("./pages/HomePage"));
 const GaragePage = lazy(() => import("./pages/GaragePage"));
 const VehicleDetailPage = lazy(() => import("./pages/VehicleDetailPage"));
+const ScenePreviewPage = lazy(() => import("./pages/ScenePreviewPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 function PageLoader() {
@@ -24,6 +25,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/garage" element={<GaragePage />} />
+            <Route path="/scene-preview" element={<ScenePreviewPage />} />
             <Route path="/vehicle/:id" element={<VehicleDetailPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

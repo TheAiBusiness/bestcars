@@ -60,8 +60,10 @@ El panel corre en **http://localhost:5174**
 | Componente | Puerto | Conecta a |
 |------------|--------|------------|
 | Backend | 3001 | Supabase (PostgreSQL) |
-| Página web | 5173 | Backend (vehículos, contacto, test-drive) |
-| Panel | 5174 | Backend (auth, CRUD, leads) |
+| Página web | 5173 | Backend (vehículos, contacto, test-drive, escenas) |
+| Panel | 5174 | Backend (auth, CRUD, leads, escenas) |
+
+**Editor de escenas**: El panel permite crear escenas (fondos + vehículos posicionados). La página `/garage` muestra la escena activa. La ruta `/scene-preview` sirve como vista previa en vivo para el editor.
 
 - **Con `VITE_API_URL`**: Panel usa API real (login, vehículos, leads).
 - **Sin `VITE_API_URL`**: Panel funciona en modo demo con datos locales.

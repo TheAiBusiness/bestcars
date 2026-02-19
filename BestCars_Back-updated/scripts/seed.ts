@@ -355,6 +355,29 @@ export async function seedDatabase(): Promise<void> {
       }
     }
 
+    // Crear escena por defecto si no existe
+    const existingScene = await prisma.scene.findFirst();
+    if (!existingScene) {
+      const defaultPositions: Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }> = {};
+      for (const pos of ['parking-1', 'parking-2', 'parking-3', 'rampa', 'parking-4']) {
+        defaultPositions[pos] = {
+          vehicleId: pos === 'parking-1' ? 'car-1' : null,
+          transform: { x: 0, y: 0, scale: 1, rotation: 0 },
+          updatedAt: new Date().toISOString(),
+        };
+      }
+      await prisma.scene.create({
+        data: {
+          name: 'Garaje principal',
+          backgroundUrl: '',
+          positions: defaultPositions,
+          isActive: true,
+          order: 0,
+        },
+      });
+      console.log('✅ Escena por defecto creada');
+    }
+
     console.log(`✅ Seeded ${vehicles.length} vehicles and ${categories.length} specification categories`);
   } catch (error) {
     console.error('Error seeding database:', error);

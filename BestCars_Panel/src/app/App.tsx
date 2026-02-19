@@ -155,7 +155,12 @@ export default function App() {
           )}
           {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
           {activeSection === "scene" && (
-            <SceneEditorSection vehicles={vehicles} searchQuery={searchQuery} />
+            <SceneEditorSection
+              vehicles={vehicles}
+              searchQuery={searchQuery}
+              apiMode={apiMode}
+              isAuthenticated={!!token}
+            />
           )}
           {activeSection === "settings" && <SettingsSection />}
           {!loading && activeSection === "webpreview" && (

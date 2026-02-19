@@ -3,10 +3,13 @@
  * Sincroniza el estado con un iframe de vista previa mediante postMessage.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Plus, Copy, Trash2, Save, RotateCcw, Image as ImageIcon } from "lucide-react";
 
 import { Vehicle } from "../data/mock-data";
 import { useLocalStorageState } from "../hooks/use-local-storage-state";
+import { useSceneEditorApi, apiSceneToEditorScene } from "../../hooks/useSceneEditorApi";
+import { createScene as apiCreateScene } from "../../services/api";
 import {
   POSITION_LABEL,
   POSITION_ORDER,
@@ -18,11 +21,9 @@ import {
 
 type SceneEditorSectionProps = {
   vehicles: Vehicle[];
-  /**
-   * La búsqueda del header del panel.
-   * La reutilizamos para filtrar el selector de vehículos.
-   */
   searchQuery?: string;
+  apiMode?: boolean;
+  isAuthenticated?: boolean;
 };
 
 function deepClone<T>(value: T): T {
@@ -33,9 +34,9 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
-const DEFAULT_PREVIEW_URL = "http://localhost:5174/scene-preview";
+const DEFAULT_PREVIEW_URL = "http://localhost:5173/scene-preview";
 
-export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSectionProps) {
+export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false, isAuthenticated = false }: SceneEditorSectionProps) {
   const initialStorage: SceneEditorStorage = useMemo(() => {
     const scene = createEmptyScene({
       name: "Escena 1",
@@ -52,6 +53,13 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
   const [storage, setStorage] = useLocalStorageState<SceneEditorStorage>(
     "bestcars_scene_editor_state",
     initialStorage,
+  );
+
+  const { persistScene, deleteSceneApi, setActiveSceneApi } = useSceneEditorApi(
+    apiMode,
+    isAuthenticated,
+    storage,
+    setStorage,
   );
 
   // Aseguramos que siempre haya una escena activa válida.
@@ -138,12 +146,38 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
     setStorage((prev) => ({ ...prev, activePositionId: posId }));
   };
 
-  const createScene = (name: string, backgroundUrl: string) => {
-    const newScene = createEmptyScene({
-      name: name.trim() || `Escena ${storage.scenes.length + 1}`,
-      backgroundUrl: backgroundUrl.trim(),
-    });
+  const createScene = async (name: string, backgroundUrl: string) => {
+    const sceneName = name.trim() || `Escena ${storage.scenes.length + 1}`;
+    const sceneBg = backgroundUrl.trim();
 
+    if (apiMode && isAuthenticated) {
+      try {
+        const created = await apiCreateScene({
+          name: sceneName,
+          backgroundUrl: sceneBg,
+          positions: {
+            "parking-1": createEmptySlot(),
+            "parking-2": createEmptySlot(),
+            "parking-3": createEmptySlot(),
+            rampa: createEmptySlot(),
+            "parking-4": createEmptySlot(),
+          },
+        });
+        const editorScene = apiSceneToEditorScene(created);
+        setStorage((prev) => ({
+          ...prev,
+          scenes: [...prev.scenes, editorScene],
+          activeSceneId: editorScene.id,
+          activePositionId: "parking-1",
+        }));
+        toast.success("Escena creada");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Error al crear");
+      }
+      return;
+    }
+
+    const newScene = createEmptyScene({ name: sceneName, backgroundUrl: sceneBg });
     setStorage((prev) => ({
       ...prev,
       scenes: [...prev.scenes, newScene],
@@ -174,6 +208,11 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
     if (!activeScene) return;
     if (!window.confirm(`¿Eliminar la escena "${activeScene.name}"?`)) return;
 
+    if (apiMode && isAuthenticated && !activeScene.id.startsWith("scene_")) {
+      deleteSceneApi(activeScene.id);
+      return;
+    }
+
     setStorage((prev) => {
       const nextScenes = prev.scenes.filter((s) => s.id !== activeScene.id);
       if (nextScenes.length === 0) {
@@ -197,17 +236,16 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
 
   const saveBackground = () => {
     if (!activeScene) return;
+    const updated = {
+      ...activeScene,
+      backgroundUrl: draftBackgroundUrl.trim(),
+      updatedAt: nowIso(),
+    };
     setStorage((prev) => ({
       ...prev,
-      scenes: prev.scenes.map((s) => {
-        if (s.id !== activeScene.id) return s;
-        return {
-          ...s,
-          backgroundUrl: draftBackgroundUrl.trim(),
-          updatedAt: nowIso(),
-        };
-      }),
+      scenes: prev.scenes.map((s) => (s.id !== activeScene.id ? s : updated)),
     }));
+    if (apiMode && isAuthenticated) persistScene(updated);
   };
 
   const resetBackgroundDraft = () => {
@@ -216,20 +254,20 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
 
   const saveSlot = () => {
     if (!activeScene) return;
+    const slotWithTime = { ...draftSlot, updatedAt: nowIso() };
+    const updated = {
+      ...activeScene,
+      updatedAt: nowIso(),
+      positions: {
+        ...activeScene.positions,
+        [storage.activePositionId]: slotWithTime,
+      },
+    };
     setStorage((prev) => ({
       ...prev,
-      scenes: prev.scenes.map((s) => {
-        if (s.id !== activeScene.id) return s;
-        return {
-          ...s,
-          updatedAt: nowIso(),
-          positions: {
-            ...s.positions,
-            [prev.activePositionId]: { ...draftSlot, updatedAt: nowIso() },
-          },
-        };
-      }),
+      scenes: prev.scenes.map((s) => (s.id !== activeScene.id ? s : updated)),
     }));
+    if (apiMode && isAuthenticated) persistScene(updated);
   };
 
   const resetSlotDraft = () => {
@@ -391,7 +429,16 @@ export function SceneEditorSection({ vehicles, searchQuery = "" }: SceneEditorSe
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {apiMode && isAuthenticated && activeScene && !activeScene.id.startsWith("scene_") && (
+            <button
+              onClick={() => setActiveSceneApi(activeScene.id)}
+              className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-emerald-200 text-sm flex items-center gap-2"
+              title="Mostrar esta escena en la web"
+            >
+              Activar en web
+            </button>
+          )}
           <button
             onClick={duplicateActiveScene}
             className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] transition-all text-white/80 text-sm flex items-center gap-2"

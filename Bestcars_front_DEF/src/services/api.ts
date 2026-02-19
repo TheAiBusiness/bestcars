@@ -69,4 +69,28 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+
+  /**
+   * Get active scene (for homepage/garage composition)
+   */
+  async getActiveScene(): Promise<Scene | null> {
+    return fetchApi<Scene | null>('/api/scenes/active');
+  },
 };
+
+export interface Scene {
+  id: string;
+  name: string;
+  backgroundUrl: string;
+  positions: Record<string, ScenePosition>;
+  isActive: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ScenePosition {
+  vehicleId: string | null;
+  transform: { x: number; y: number; scale: number; rotation: number };
+  updatedAt: string;
+}
