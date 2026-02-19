@@ -74,6 +74,15 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
     })
     .slice(0, 3), [vehicles]);
 
+  if (vehicles.length === 0) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
+        <ChartBar className="w-16 h-16 text-white/20 mb-4" />
+        <p className="text-white/50 text-center">Añade vehículos para ver estadísticas</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       {/* Top Stats */}

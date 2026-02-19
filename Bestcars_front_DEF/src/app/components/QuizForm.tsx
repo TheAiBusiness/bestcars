@@ -21,6 +21,7 @@ export function QuizForm({ isOpen, onClose, vehicleId, vehicleTitle }: QuizFormP
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<QuizAnswer>({
     name: '',
     age: '',
@@ -95,6 +96,7 @@ export function QuizForm({ isOpen, onClose, vehicleId, vehicleTitle }: QuizFormP
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError(null);
     try {
       await api.submitTestDrive({
         vehicleId,
@@ -108,8 +110,9 @@ export function QuizForm({ isOpen, onClose, vehicleId, vehicleTitle }: QuizFormP
       setIsCompleted(true);
     } catch (error) {
       console.error('Error submitting test drive request:', error);
-      // Still show success to user, but log the error
-      setIsCompleted(true);
+      // Mostrar error al usuario
+      const msg = error instanceof Error ? error.message : 'Error al enviar. Inténtalo de nuevo.';
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,6 +124,7 @@ export function QuizForm({ isOpen, onClose, vehicleId, vehicleTitle }: QuizFormP
     setTimeout(() => {
       setCurrentStep(0);
       setIsCompleted(false);
+      setError(null);
       setAnswers({
         name: '',
         age: '',
@@ -218,6 +222,13 @@ export function QuizForm({ isOpen, onClose, vehicleId, vehicleTitle }: QuizFormP
                       />
                     </div>
                   </div>
+
+                  {/* Error message */}
+                  {error && (
+                    <div className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+                      {error}
+                    </div>
+                  )}
 
                   {/* Question */}
                   <div className="min-h-[200px]">

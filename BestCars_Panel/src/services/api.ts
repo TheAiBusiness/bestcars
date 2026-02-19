@@ -32,14 +32,21 @@ async function fetchApi<T>(
   const res = await fetch(`${API}${endpoint}`, { ...init, headers });
   if (res.status === 401) {
     setStoredToken(null);
+    window.dispatchEvent(new CustomEvent('auth:session-expired'));
     throw new Error('Sesión expirada. Inicia sesión de nuevo.');
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+    const text = await res.text();
+    let err: { error?: string } = { error: 'Error desconocido' };
+    try {
+      err = JSON.parse(text);
+    } catch {
+      err = { error: text || `Error ${res.status}` };
+    }
     throw new Error(err.error || `Error ${res.status}`);
   }
   if (res.status === 204) return undefined as T;
-  return res.json();
+  return JSON.parse(await res.text()) as T;
 }
 
 /** Login: devuelve el token JWT */

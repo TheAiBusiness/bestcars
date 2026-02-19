@@ -1,5 +1,3 @@
-import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { Vehicle, Lead } from "../app/data/mock-data";
 import { mockVehicles, mockLeads } from "../app/data/mock-data";
 import { useLocalStorageState } from "../app/hooks/use-local-storage-state";
@@ -76,13 +74,16 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
   );
 
   const handleVehicleReorder = useCallback(
-    (reorderedVehicles: Vehicle[]) => {
+    async (reorderedVehicles: Vehicle[]) => {
       const updated = reorderedVehicles.map((v, i) => ({ ...v, priority: i + 1 }));
       setVehiclesState(updated);
       if (apiMode && isAuthenticated) {
-        updated.forEach((v, i) =>
-          updateVehicle(v.id, { priority: i + 1 }).catch(() => {})
-        );
+        try {
+          await Promise.all(updated.map((v, i) => updateVehicle(v.id, { priority: i + 1 })));
+          toast.success("Orden actualizado");
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Error al actualizar orden");
+        }
       }
     },
     [apiMode, isAuthenticated, setVehiclesState]

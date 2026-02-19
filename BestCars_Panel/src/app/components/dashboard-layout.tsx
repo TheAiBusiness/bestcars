@@ -4,12 +4,13 @@
  */
 import { ReactNode } from "react";
 import { motion } from "motion/react";
-import { Car, Users, ChartBar, Layers, Settings, Globe } from 'lucide-react';
+import { Car, Users, ChartBar, Layers, Settings, Globe, LogOut } from 'lucide-react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
   activeSection: string;
   onSectionChange: (section: string) => void;
+  onLogout?: () => void;
 }
 
 /**
@@ -27,7 +28,7 @@ const menuItems = [
   { id: 'webpreview', label: 'Vista Web', icon: Globe },
 ];
 
-export function DashboardLayout({ children, activeSection, onSectionChange }: DashboardLayoutProps) {
+export function DashboardLayout({ children, activeSection, onSectionChange, onLogout }: DashboardLayoutProps) {
   return (
     <div className="flex h-screen bg-black overflow-hidden">
       {/* Sidebar */}
@@ -87,10 +88,21 @@ export function DashboardLayout({ children, activeSection, onSectionChange }: Da
           </nav>
 
           {/* Footer */}
-          <div className="mt-auto pt-6 border-t border-white/5">
+          <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
+            {onLogout && (
+              <motion.button
+                onClick={onLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <LogOut className="w-5 h-5" />
+                <span>Cerrar sesión</span>
+              </motion.button>
+            )}
             <div className="px-4 py-3 rounded-xl bg-white/[0.02] border border-white/5">
               <p className="text-xs text-white/40">Usuario activo</p>
-              <p className="text-sm text-white/70 mt-1">Admin Principal</p>
+              <p className="text-sm text-white/70 mt-1">Admin</p>
             </div>
           </div>
         </div>
