@@ -36,3 +36,21 @@ export interface Vehicle {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface VehicleUpdateBody {
+  title?: string;
+  year?: number;
+  mileage?: string;
+  price?: string;
+  priceSubtext?: string | null;
+  fuelType?: string | null;
+  seats?: string | null;
+  description?: string | null;
+  images?: string[];
+  tags?: string[];
+  status?: string;
+  priority?: number;
+  views?: number;
+  clicks?: number;
+  leads?: number;
+}

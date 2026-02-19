@@ -1,161 +1,206 @@
-# Best Cars Backend API
+# Best Cars — API Backend
 
-TypeScript + Express.js backend API for Best Cars landing page, using Supabase (PostgreSQL) with Prisma ORM.
+API REST profesional para el concesionario Best Cars. Desarrollada con **TypeScript**, **Express** y **Prisma**, conectada a **PostgreSQL** (Supabase).
 
-## Setup
+---
 
-### 1. Install Dependencies
+## Características
+
+- **CRUD de vehículos** con especificaciones por categoría
+- **Formulario de contacto** con envío de email (SendGrid)
+- **Solicitudes de prueba de manejo** con notificación por email
+- **Autenticación JWT** para panel de administración
+- **Seguridad**: Helmet, rate limiting, CORS configurado
+- **Validación de variables de entorno** al arranque
+- **Manejo de errores** centralizado
+
+---
+
+## Requisitos
+
+- Node.js 18+
+- PostgreSQL (Supabase recomendado)
+- Cuenta SendGrid (para emails)
+
+---
+
+## Instalación
+
+### 1. Clonar e instalar dependencias
 
 ```bash
+git clone https://github.com/TheAiBusiness/Bestcars_panelDef.git
+cd Bestcars_panelDef/BestCars_Back-updated
 npm install
 ```
 
-### 2. Configure Supabase Connection
+### 2. Configurar variables de entorno
 
-1. Create a `.env` file in the root directory (copy from `.env.example`)
-2. Get your Supabase connection string from:
-   - Supabase Dashboard → Settings → Database → Connection string
-   - Use the "Connection pooling" connection string (recommended for serverless)
-3. Update `DATABASE_URL` in `.env`:
+Crear archivo `.env` en la raíz del proyecto (copiar desde `.env.example`):
 
 ```env
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@[PROJECT-REF].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
+# Servidor
+PORT=3001
+NODE_ENV=development
+
+# Base de datos (Supabase)
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/postgres?schema=public
+
+# CORS (orígenes permitidos, separados por coma)
+CORS_ORIGINS=http://localhost:5173,https://tudominio.com
+
+# Autenticación admin
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=tu-password-seguro
+JWT_SECRET=clave-secreta-minimo-16-caracteres
+
+# SendGrid (emails)
+SENDGRID_API_KEY=SG.xxx
+FROM_EMAIL=noreply@tudominio.com
+RECIPIENT_EMAIL=ventas@tudominio.com
 ```
 
-### 3. Initialize Prisma
-
-Generate Prisma Client:
+### 3. Inicializar base de datos
 
 ```bash
 npm run db:generate
-```
-
-### 3.5. Build TypeScript (Optional)
-
-If you want to build the TypeScript code:
-
-```bash
-npm run build
-```
-
-### 4. Push Database Schema to Supabase
-
-This will create the tables in your Supabase database:
-
-```bash
 npm run db:push
+npm run db:seed   # Opcional: datos de ejemplo
 ```
 
-Alternatively, you can use migrations:
+### 4. Iniciar servidor
 
-```bash
-npm run db:migrate
-```
-
-### 5. Seed Database (Optional)
-
-Populate the database with sample vehicles:
-
-```bash
-npm run db:seed
-```
-
-### 6. Start the Server
-
-Development mode (with auto-reload):
-
+**Desarrollo:**
 ```bash
 npm run dev
 ```
 
-Production mode:
-
+**Producción:**
 ```bash
+npm run build
 npm start
 ```
 
-The server will run on `http://localhost:3001` by default.
+El servidor estará disponible en `http://localhost:3001`.
+
+---
 
 ## API Endpoints
 
-### Health Check
-- `GET /api/health` - Check if API is running
+### Públicos
 
-### Vehicles
-- `GET /api/vehicles` - Get all vehicles
-- `GET /api/vehicles/:id` - Get a single vehicle by ID
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/health` | Health check |
+| GET | `/api/vehicles` | Listar vehículos |
+| GET | `/api/vehicles/:id` | Detalle de vehículo |
+| POST | `/api/auth/login` | Login admin |
+| POST | `/api/contact` | Enviar formulario de contacto |
+| POST | `/api/test-drive` | Solicitar prueba de manejo |
 
-### Contact Form
-- `POST /api/contact` - Submit a contact form (sends email via SendGrid)
-  ```json
-  {
-    "vehicleId": "car-1", // optional
-    "vehicleTitle": "Audi RS6 Avant", // optional
-    "name": "John Doe",
-    "email": "john@example.com",
-    "phone": "+34 600 000 000", // optional
-    "message": "I'm interested in this vehicle" // optional
-  }
-  ```
-- `GET /api/contact` - Get all contact submissions (admin)
+### Protegidos (requieren `Authorization: Bearer <token>`)
 
-## Database Schema
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| POST | `/api/vehicles` | Crear vehículo |
+| PATCH | `/api/vehicles/:id` | Actualizar vehículo |
+| DELETE | `/api/vehicles/:id` | Eliminar vehículo |
+| GET | `/api/contact` | Listar contactos |
+| PATCH | `/api/contact/:id` | Actualizar contacto |
+| GET | `/api/test-drive` | Listar solicitudes prueba |
+| PATCH | `/api/test-drive/:id` | Actualizar solicitud |
 
-### Vehicle
-- `id` (String, UUID) - Primary key
-- `title` (String) - Vehicle name
-- `year` (Int) - Manufacturing year
-- `mileage` (String) - Vehicle mileage
-- `price` (String) - Vehicle price
-- `priceSubtext` (String, optional) - Price additional info
-- `fuelType` (String, optional) - Fuel type
-- `seats` (String, optional) - Number of seats
-- `description` (Text, optional) - Vehicle description
-- `images` (String[]) - Array of image URLs
-- `tags` (String[]) - Array of tags
-- `stats` (JSON) - Statistics object
-- `specifications` (JSON) - Specifications object
-- `createdAt` (DateTime) - Creation timestamp
-- `updatedAt` (DateTime) - Last update timestamp
+---
 
-### ContactSubmission
-- `id` (Int) - Primary key
-- `vehicleId` (String, optional) - Related vehicle ID
-- `name` (String) - Contact name
-- `email` (String) - Contact email
-- `phone` (String, optional) - Contact phone
-- `message` (Text, optional) - Contact message
-- `createdAt` (DateTime) - Creation timestamp
+## Ejemplos de uso
 
-## Available Scripts
+### Login
 
-- `npm run build` - Build TypeScript to JavaScript
-- `npm run start` - Start the production server (requires build first)
-- `npm run dev` - Start development server with hot reload (using tsx)
-- `npm run db:generate` - Generate Prisma Client
-- `npm run db:push` - Push schema changes to database (dev)
-- `npm run db:migrate` - Create and apply migrations (production)
-- `npm run db:seed` - Seed database with sample data
+```bash
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"tu-password"}'
+```
 
-## Environment Variables
+Respuesta: `{ "token": "eyJ...", "role": "admin" }`
 
-- `DATABASE_URL` - Supabase PostgreSQL connection string (required)
-- `PORT` - Server port (default: 3001)
-- `NODE_ENV` - Environment (development/production)
-- `SENDGRID_API_KEY` - SendGrid API key for sending emails (required for contact form)
-- `RECIPIENT_EMAIL` - Email address to receive contact form submissions (default: ventas@bestcars.com)
-- `FROM_EMAIL` - Email address to send emails from (default: noreply@bestcars.com)
+### Formulario de contacto
 
-### SendGrid Setup
+```bash
+curl -X POST http://localhost:3001/api/contact \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Juan Pérez",
+    "email": "juan@ejemplo.com",
+    "phone": "+34 600 000 000",
+    "message": "Interesado en el Audi RS6"
+  }'
+```
 
-1. Create a SendGrid account at https://sendgrid.com
-2. Generate an API key:
-   - Go to Settings → API Keys
-   - Create a new API key with "Mail Send" permissions
-3. Add the API key to your `.env` file:
-   ```env
-   SENDGRID_API_KEY="SG.your-api-key-here"
-   RECIPIENT_EMAIL="your-email@example.com"
-   FROM_EMAIL="noreply@yourdomain.com"
-   ```
-4. Verify your sender email in SendGrid (Settings → Sender Authentication)
+### Solicitud de prueba de manejo
+
+```bash
+curl -X POST http://localhost:3001/api/test-drive \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "María García",
+    "age": "35",
+    "lastVehicle": "BMW 3 Series",
+    "interests": "Deportivos",
+    "mainUse": "Uso familiar"
+  }'
+```
+
+---
+
+## Scripts disponibles
+
+| Script | Descripción |
+|--------|-------------|
+| `npm run dev` | Servidor desarrollo con hot-reload |
+| `npm run build` | Compilar TypeScript |
+| `npm start` | Iniciar servidor producción |
+| `npm run db:generate` | Generar cliente Prisma |
+| `npm run db:push` | Sincronizar esquema (desarrollo) |
+| `npm run db:migrate` | Ejecutar migraciones (producción) |
+| `npm run db:seed` | Poblar datos de ejemplo |
+| `npm run lint` | Ejecutar ESLint |
+| `npm run lint:fix` | Corregir errores ESLint |
+| `npm run format` | Formatear código con Prettier |
+
+---
+
+## Seguridad
+
+- **Helmet**: cabeceras HTTP seguras
+- **Rate limiting**: 100 req/15min API general, 20/hora formularios, 10/15min login
+- **CORS**: orígenes configurados por variable de entorno
+- **JWT**: tokens con expiración de 7 días
+
+---
+
+## Estructura del proyecto
+
+```
+BestCars_Back-updated/
+├── prisma/
+│   └── schema.prisma
+├── scripts/
+│   └── seed.ts
+├── src/
+│   ├── config/       # app, prisma, env
+│   ├── controllers/
+│   ├── middleware/   # auth, errorHandler, rateLimit
+│   ├── routes/
+│   ├── services/     # emailService
+│   ├── types/
+│   └── index.ts
+├── .env.example
+└── package.json
+```
+
+---
+
+## Licencia
+
+ISC

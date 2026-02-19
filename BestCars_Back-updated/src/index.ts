@@ -1,11 +1,9 @@
 import 'dotenv/config';
-import dotenv from 'dotenv';
 import app from './config/app.js';
+import { env } from './config/env.js';
 import { prisma } from './config/prisma.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 3001;
+const PORT = env.PORT;
 
 async function start(): Promise<void> {
   try {

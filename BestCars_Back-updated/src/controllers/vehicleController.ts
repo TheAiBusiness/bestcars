@@ -1,6 +1,6 @@
 import { type Request, type Response } from 'express';
 import { prisma } from '../config/prisma.js';
-import type { VehicleSpecifications } from '../types/vehicle.js';
+import type { VehicleSpecifications, VehicleUpdateBody } from '../types/vehicle.js';
 
 type SpecsInput = VehicleSpecifications;
 
@@ -36,7 +36,7 @@ async function ensureCategories(): Promise<Map<string, string>> {
   return byName;
 }
 
-function pickUpdatableVehicleFields(body: any) {
+function pickUpdatableVehicleFields(body: VehicleUpdateBody | Record<string, unknown>) {
   const {
     title,
     year,
@@ -135,10 +135,14 @@ export const createVehicle = async (req: Request, res: Response): Promise<void> 
 
     const categoryMap = await ensureCategories();
 
+    const updatable = pickUpdatableVehicleFields(body);
     const created = await prisma.vehicle.create({
       data: {
-        ...pickUpdatableVehicleFields(body),
-        // Defaults if missing
+        ...updatable,
+        title: String(body.title),
+        year: Number(body.year),
+        mileage: String(body.mileage),
+        price: String(body.price),
         images: Array.isArray(body.images) ? body.images.map(String) : [],
         tags: Array.isArray(body.tags) ? body.tags.map(String) : [],
       },
