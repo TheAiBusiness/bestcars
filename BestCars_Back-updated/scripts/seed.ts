@@ -66,11 +66,7 @@ export async function seedDatabase(): Promise<void> {
         fuelType: 'Gasolina',
         seats: '5 Plazas',
         description: 'Audi RS6 Avant 2023, la berlina familiar más potente del mundo. Motor V8 biturbo de 4.0L con 600 HP y 800 Nm de par. Combina el rendimiento de un superdeportivo con la practicidad de un familiar. Equipado con sistema quattro, suspensión adaptativa con modo RS, y frenos de cerámica opcionales. Interior en cuero Valcona con detalles en carbono y aluminio.',
-        images: [
-          'audi1.jpeg',
-          'audi2.jpeg',
-          'audi3.jpeg',
-        ],
+        images: ['AUDI RS6_42.jpg', 'AUDI RS6_43.jpg', 'AUDI RS6_44.jpg', 'AUDI RS6_45.jpg', 'AUDI RS6_46.jpg', 'AUDI RS6_47.jpg', 'AUDI RS6_48.jpg', 'AUDI RS6_49.jpg', 'AUDI RS6_50.jpg'],
         tags: ['Familiar', 'Deportivo', 'Premium'],
         specifications: {
           general: [
@@ -117,11 +113,7 @@ export async function seedDatabase(): Promise<void> {
         fuelType: 'Gasolina',
         seats: '4 Plazas',
         description: 'BMW M4 CS 2022 en excelente estado. Motor 3.0L Twin-Turbo de 6 cilindros con 510 HP. Equipado con transmisión automática de 8 velocidades, diferencial M Sport y sistema de suspensión adaptativa. Interior en cuero Merino con asientos deportivos M. Incluye paquete de tecnología completo con pantalla de 12.3" y sistema de sonido Harman Kardon.',
-        images: [
-          'bmw1.jpeg',
-          'bmw2.jpeg',
-          'bmw3.jpeg',
-        ],
+        images: ['M4cs (SOLO EXTERIOR).jpg', 'M4cs (SOLO EXTERIOR)_1.jpg', 'M4cs (SOLO EXTERIOR)_2.jpg', 'M4CS Interior.jpg', 'M4CS Interior_1.jpg'],
         tags: ['Deportivo', 'Cupé', 'Lujo'],
         specifications: {
           general: [
@@ -168,11 +160,7 @@ export async function seedDatabase(): Promise<void> {
         fuelType: 'Gasolina',
         seats: '2 Plazas',
         description: 'Porsche 911 GT3 RS 2023, la versión más extrema y orientada a circuito del 911. Motor atmosférico de 4.0L de 6 cilindros bóxer que desarrolla 525 HP, diseñado para el máximo rendimiento en pista. Con solo 3,000 km, este vehículo está prácticamente nuevo. Equipado con aerodinámica activa, suspensión de doble horquilla, frenos de cerámica PCCB y transmisión PDK de 7 velocidades. Interior ligero con jaula de seguridad, asientos deportivos de competición y sistema de sonido opcional.',
-        images: [
-          'porsche1.jpeg',
-          'porsche2.jpeg',
-          'porsche3.jpeg',
-        ],
+        images: ['GT3RS.jpg', 'GT3RS_1.jpg', 'GT3RS_2.jpg', 'GT3RS_3.jpg', 'GT3RS_4.jpg', 'GT3RS_5.jpg'],
         tags: ['Deportivo', 'Cupé', 'Premium'],
         specifications: {
           general: [
@@ -219,11 +207,7 @@ export async function seedDatabase(): Promise<void> {
         fuelType: 'Gasolina',
         seats: '5 Plazas',
         description: 'Audi RS3 2024, el compacto deportivo más potente de su segmento. Equipado con el legendario motor 2.5L TFSI de 5 cilindros que desarrolla 400 HP y 500 Nm de par máximo. Este vehículo combina el rendimiento de un deportivo puro con la practicidad de un sedán compacto. Sistema quattro con diferencial trasero RS Torque Splitter para máxima tracción y agilidad. Suspensión RS Sport con modo Dynamic Plus, frenos de alto rendimiento y escape deportivo RS. Interior en cuero RS con detalles en Alcantara y aluminio, asientos deportivos RS con ajuste eléctrico.',
-        images: [
-          'rs3_1.jpeg',
-          'rs3_2.jpeg',
-          'rs3_3.jpeg',
-        ],
+        images: ['RS3.jpg', 'RS3_1.jpg', 'RS3_2.jpg', 'RS3_3.jpg', 'RS3_4.jpg'],
         tags: ['Deportivo', 'Sedán', 'Premium'],
         specifications: {
           general: [
@@ -270,11 +254,7 @@ export async function seedDatabase(): Promise<void> {
         fuelType: 'Gasolina',
         seats: '5 Plazas',
         description: 'Porsche Cayenne Turbo GT 2023, el SUV más rápido del mundo en el circuito de Nürburgring. Motor V8 biturbo de 4.0L que genera 640 HP y 850 Nm de par máximo. Este vehículo redefine las expectativas de rendimiento en un SUV, combinando la versatilidad de un todo terreno con el corazón de un superdeportivo. Equipado con suspensión adaptativa PASM, sistema de tracción integral PTM, frenos de cerámica PCCB y escape deportivo activo. Interior en cuero Race-Tex con detalles en carbono, asientos deportivos adaptables y sistema de sonido Burmester 3D High-End Surround Sound.',
-        images: [
-          'cayenne1.jpeg',
-          'cayenne2.jpeg',
-          'cayenne3.jpeg',
-        ],
+        images: ['TURBO GT_9.jpg', 'TURBO GT_10.jpg', 'TURBO GT_11.jpg', 'TURBO GT_12.jpg', 'TURBO GT_13.jpg'],
         tags: ['SUV', 'Deportivo', 'Premium'],
         specifications: {
           general: [

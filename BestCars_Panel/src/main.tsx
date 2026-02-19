@@ -4,6 +4,7 @@
  */
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { AuthProvider } from "./contexts/AuthContext";
 import App from "./app/App.tsx";
 import "./styles/index.css";
 
@@ -12,6 +13,8 @@ if (!root) throw new Error("No se encontró el elemento #root");
 
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </StrictMode>
 );

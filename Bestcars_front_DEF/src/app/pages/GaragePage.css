@@ -1,0 +1,61 @@
+.garage-page {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+  display: block;
+  background-color: #000;
+  margin: 0;
+  padding: 0;
+}
+
+.image-wrapper {
+  position: relative;
+  aspect-ratio: 16 / 9 ;
+  /* Default: fill height (for mobile portrait) */
+  height: 100dvh;
+  width: calc(100dvh * 16 / 9);
+  overflow: visible;
+}
+
+/* On wider displays (16:9, 16:10, 21:9, etc.), fill width to avoid horizontal scrollbar */
+@media (min-aspect-ratio: 8/5) {
+  .image-wrapper {
+    width: 100vw;
+    height: calc(100vw * 9 / 16);
+    min-height: 100vh;
+  }
+}
+
+.garage-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+}
+
+.garage-logo {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 50px;
+  width: auto;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.garage-logo.loaded {
+  opacity: 1;
+}
+
+/* Smaller logo on mobile */
+@media (max-width: 768px) {
+  .garage-logo {
+    height: 35px;
+    top: 15px;
+  }
+}

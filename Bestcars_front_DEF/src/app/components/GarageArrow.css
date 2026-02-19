@@ -1,0 +1,107 @@
+.garage-arrow-btn {
+  position: absolute;
+  /* ========== ADJUST THESE VALUES TO MOVE THE ARROW ========== */
+  top: 61%;      /* Distance from top (0% = top edge, 100% = bottom edge) */
+  left: 62%;     /* Distance from left (0% = left edge, 100% = right edge) */
+  /* =========================================================== */
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 24px;
+  height: 24px;
+  border: 1px solid white;
+  border-radius: 12.5px;
+  background: transparent;
+  color: white;
+  text-decoration: none;
+  overflow: hidden;
+  transition: width 0.5s ease-in-out;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+  z-index: 30;
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.garage-arrow-btn:hover {
+  width: 155px;
+}
+
+.garage-arrow-icon {
+  position: absolute;
+  top: 6px;
+  left: 5px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.garage-arrow-icon svg {
+  display: block;
+}
+
+.garage-arrow-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  white-space: nowrap;
+  line-height: 1;
+  padding: 5px 15px 5px 22px;
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.garage-arrow-btn:hover .garage-arrow-text {
+  opacity: 1;
+}
+
+/* Mobile responsive - fix to middle right of screen */
+@media (max-width: 768px) {
+  .garage-arrow-btn {
+    position: fixed;
+    top: 50%;
+    right: 16px;
+    left: auto;
+    transform: translateY(-50%);
+    z-index: 100;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+  }
+  
+  .garage-arrow-icon {
+    top: 9px;
+    left: 8px;
+  }
+  
+  .garage-arrow-icon svg {
+    width: 18px;
+    height: 15px;
+  }
+  
+  .garage-arrow-text {
+    padding: 8px 18px 8px 28px;
+    font-size: 13px;
+  }
+  
+  .garage-arrow-btn:hover {
+    width: 180px;
+  }
+  
+  .garage-arrow-btn.menu-open {
+    display: none;
+  }
+
+  .garage-arrow-btn.terms-open {
+    display: none;
+  }
+}

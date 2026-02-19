@@ -13,100 +13,45 @@ import { LeadsSection } from "./components/leads-section";
 import { StatsSection } from "./components/stats-section";
 import { SettingsSection } from "./components/settings-section";
 import { SceneEditorSection } from "./components/scene-editor-section";
+import { LoginPage } from "./pages/LoginPage";
 
-import { mockVehicles, mockLeads, Vehicle, Lead } from "./data/mock-data";
-import { useLocalStorageState } from "./hooks/use-local-storage-state";
+import { Vehicle, Lead } from "./data/mock-data";
+import { useAuth } from "../contexts/AuthContext";
+import { usePanelData } from "../hooks/usePanelData";
 
-/**
- * Secciones disponibles del panel.
- *
- * Tener un tipo "cerrado" evita bugs típicos (typos) y hace que TypeScript
- * te avise si te dejas algo sin renderizar.
- */
 type SectionId = "stock" | "leads" | "stats" | "scene" | "settings" | "webpreview";
 
 export default function App() {
-  // Sección que se está mostrando en el panel.
+  const { token, isAuthenticated, apiMode, logout } = useAuth();
+  const showLogin = apiMode && !token;
+
+  const {
+    vehicles,
+    leads,
+    loading,
+    handleVehicleUpdate,
+    handleVehicleReorder,
+    handlePriceUpdate,
+    handleLeadUpdate,
+    handleSaveNewVehicle,
+  } = usePanelData(apiMode, !!token);
+
   const [activeSection, setActiveSection] = useState<SectionId>("stock");
-
-  // Datos principales del panel. Persisten en localStorage para que el usuario
-  // no pierda cambios al refrescar la página.
-  const [vehicles, setVehicles] = useLocalStorageState<Vehicle[]>(
-    "autopanel_vehicles",
-    mockVehicles,
-  );
-  const [leads, setLeads] = useLocalStorageState<Lead[]>("autopanel_leads", mockLeads);
-
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isWebPreviewOpen, setIsWebPreviewOpen] = useState(false);
   const [previewVehicle, setPreviewVehicle] = useState<Vehicle | null>(null);
 
-  /** Actualiza un vehículo por ID y sincroniza el detalle si está abierto */
-  const handleVehicleUpdate = useCallback((vehicleId: string, updates: Partial<Vehicle>) => {
-    setVehicles((prev) =>
-      prev.map((v) => {
-        if (v.id === vehicleId) {
-          return { ...v, ...updates, updatedAt: new Date().toISOString() };
-        }
-        return v;
-      }),
-    );
-
-    // Si el detalle está abierto, mantenemos la vista sincronizada.
-    if (selectedVehicle?.id === vehicleId) {
-      setSelectedVehicle((prev) => (prev ? { ...prev, ...updates } : null));
-    }
-
-    toast.success("Vehículo actualizado correctamente");
-  }, [selectedVehicle?.id, setVehicles]);
-
-  /** Reordena la lista de vehículos actualizando prioridades */
-  const handleVehicleReorder = useCallback((reorderedVehicles: Vehicle[]) => {
-    const updatedVehicles = reorderedVehicles.map((v, index) => ({
-      ...v,
-      priority: index + 1,
-    }));
-    setVehicles(updatedVehicles);
-  }, [setVehicles]);
-
-  /** Actualiza el precio de un vehículo y registra el historial */
-  const handlePriceUpdate = useCallback((vehicleId: string, newPrice: number) => {
-    setVehicles((prev) =>
-      prev.map((v) => {
-        if (v.id === vehicleId) {
-          const priceHistory = [
-            ...v.priceHistory,
-            { date: new Date().toISOString(), price: newPrice },
-          ];
-          return {
-            ...v,
-            price: newPrice,
-            priceHistory,
-            updatedAt: new Date().toISOString(),
-          };
-        }
-        return v;
-      }),
-    );
-
-    toast.success("Precio actualizado correctamente");
-  }, [setVehicles]);
-
-  /** Actualiza un lead por ID */
-  const handleLeadUpdate = useCallback((leadId: string, updates: Partial<Lead>) => {
-    setLeads((prev) =>
-      prev.map((l) => {
-        if (l.id === leadId) {
-          return { ...l, ...updates };
-        }
-        return l;
-      }),
-    );
-
-    toast.success("Lead actualizado correctamente");
-  }, [setLeads]);
+  const handleVehicleUpdateWithSync = useCallback(
+    (vehicleId: string, updates: Partial<Vehicle>) => {
+      handleVehicleUpdate(vehicleId, updates);
+      if (selectedVehicle?.id === vehicleId) {
+        setSelectedVehicle((prev) => (prev ? { ...prev, ...updates } : null));
+      }
+    },
+    [handleVehicleUpdate, selectedVehicle?.id]
+  );
 
   const handleVehicleClick = useCallback((vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -120,52 +65,29 @@ export default function App() {
     setIsCreateModalOpen(true);
   }, []);
 
-  /** Crea un nuevo vehículo con ID, fechas y prioridad auto-generados */
-  const handleSaveNewVehicle = useCallback((
-    vehicle: Omit<Vehicle, "id" | "createdAt" | "updatedAt" | "priority">,
-  ) => {
-    const now = new Date().toISOString();
-    setVehicles((prev) => {
-      const newVehicle: Vehicle = {
-        ...vehicle,
-        id: `v${Date.now()}`,
-        createdAt: now,
-        updatedAt: now,
-        priority: prev.length + 1,
-      };
-      return [...prev, newVehicle];
-    });
-    toast.success(`Vehículo "${vehicle.name}" creado correctamente`);
-  }, [setVehicles]);
-
   const handleWebPreview = useCallback((vehicle: Vehicle) => {
     setPreviewVehicle(vehicle);
     setIsWebPreviewOpen(true);
   }, []);
-  const normalizedQuery = searchQuery.trim().toLowerCase();
 
+  const normalizedQuery = searchQuery.trim().toLowerCase();
   const filteredVehicles = useMemo(() => {
     if (!normalizedQuery) return vehicles;
     return vehicles.filter(
       (v) =>
         v.name.toLowerCase().includes(normalizedQuery) ||
         v.brand.toLowerCase().includes(normalizedQuery) ||
-        v.model.toLowerCase().includes(normalizedQuery),
+        v.model.toLowerCase().includes(normalizedQuery)
     );
   }, [vehicles, normalizedQuery]);
 
-  /**
-   * Filtra leads por texto libre (nombre, email, teléfono).
-   *
-   * Nota: LeadsSection además aplica filtros propios por status/origen.
-   */
   const filteredLeads = useMemo(() => {
     if (!normalizedQuery) return leads;
     return leads.filter(
       (l) =>
         l.name.toLowerCase().includes(normalizedQuery) ||
         l.email.toLowerCase().includes(normalizedQuery) ||
-        l.phone.toLowerCase().includes(normalizedQuery),
+        l.phone.toLowerCase().includes(normalizedQuery)
     );
   }, [leads, normalizedQuery]);
 
@@ -187,9 +109,16 @@ export default function App() {
     webpreview: "Buscar en vista web...",
   };
 
+  if (showLogin) {
+    return <LoginPage />;
+  }
+
   return (
     <div className="min-h-screen bg-black">
-      <DashboardLayout activeSection={activeSection} onSectionChange={setActiveSection}>
+      <DashboardLayout
+        activeSection={activeSection}
+        onSectionChange={setActiveSection}
+      >
         <Header
           title={sectionTitles[activeSection]}
           searchPlaceholder={searchPlaceholders[activeSection]}
@@ -204,7 +133,10 @@ export default function App() {
               : "flex-1 overflow-y-auto"
           }
         >
-          {activeSection === "stock" && (
+          {loading && (
+            <div className="p-8 text-center text-white/60">Cargando datos...</div>
+          )}
+          {!loading && activeSection === "stock" && (
             <StockSection
               vehicles={filteredVehicles}
               onVehicleClick={handleVehicleClick}
@@ -213,21 +145,23 @@ export default function App() {
               onCreateVehicle={handleCreateVehicle}
             />
           )}
-
-          {activeSection === "leads" && (
-            <LeadsSection leads={filteredLeads} vehicles={vehicles} onLeadUpdate={handleLeadUpdate} />
+          {!loading && activeSection === "leads" && (
+            <LeadsSection
+              leads={filteredLeads}
+              vehicles={vehicles}
+              onLeadUpdate={handleLeadUpdate}
+            />
           )}
-
           {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
-
           {activeSection === "scene" && (
             <SceneEditorSection vehicles={vehicles} searchQuery={searchQuery} />
           )}
-
           {activeSection === "settings" && <SettingsSection />}
-
-          {activeSection === "webpreview" && (
-            <WebPreviewSection vehicles={filteredVehicles} onVehiclePreview={handleWebPreview} />
+          {!loading && activeSection === "webpreview" && (
+            <WebPreviewSection
+              vehicles={filteredVehicles}
+              onVehiclePreview={handleWebPreview}
+            />
           )}
         </div>
       </DashboardLayout>
@@ -237,7 +171,7 @@ export default function App() {
           <VehicleDetail
             vehicle={selectedVehicle}
             onClose={handleCloseDetail}
-            onUpdate={handleVehicleUpdate}
+            onUpdate={handleVehicleUpdateWithSync}
             onWebPreview={handleWebPreview}
           />
         )}
@@ -269,3 +203,4 @@ export default function App() {
     </div>
   );
 }
+

@@ -1,0 +1,157 @@
+.terms-trigger {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 50;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid white;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease;
+}
+
+.terms-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 767px) {
+  .terms-trigger {
+    right: auto;
+    left: 1.5rem;
+    bottom: 1.5rem;
+    top: auto;
+    padding: 0.35rem 0.6rem;
+    font-size: 11px;
+  }
+}
+
+.terms-dialog-content {
+  width: calc(100% - 48px) !important;
+  max-width: 28rem !important;
+  height: auto !important;
+  min-height: 400px !important;
+  max-height: 70vh !important;
+  padding: 1rem !important;
+  border-radius: 1.5rem !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+}
+
+.terms-noise-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.015;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.terms-dialog-content > [data-slot="dialog-header"],
+.terms-dialog-content > .terms-scroll {
+  position: relative;
+  z-index: 1;
+}
+
+.terms-title {
+  padding: 0 2rem 0 0 !important;
+  margin: 0 !important;
+  color: white !important;
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+}
+
+.terms-dialog-content > button[class*="absolute"] {
+  color: white !important;
+  opacity: 0.9 !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+}
+.terms-dialog-content > button[class*="absolute"]:hover {
+  opacity: 1 !important;
+}
+
+.terms-scroll {
+  flex: 1 1 auto;
+  min-height: 300px;
+  max-height: calc(70vh - 100px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1em;
+  -webkit-overflow-scrolling: touch;
+}
+
+.terms-text {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  padding: 0.5rem 0;
+}
+
+.terms-main-heading {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.02em;
+}
+
+.terms-date {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.75);
+  text-align: center;
+  margin: 0 0 1.5rem 0;
+  font-style: italic;
+}
+
+.terms-section {
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  margin: 1.25rem 0 0.5rem 0;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+.terms-section:first-of-type {
+  margin-top: 0;
+}
+
+.terms-para {
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0 0 0.75rem 0;
+  letter-spacing: 0.01em;
+}
+
+.terms-para:last-child {
+  margin-bottom: 0;
+}
+
+.terms-para a {
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.terms-para a:hover {
+  opacity: 0.85;
+}
+
+.terms-para strong {
+  font-weight: 600;
+  color: white;
+}

@@ -1,43 +1,71 @@
-# Best Cars — Panel de Gestión
+# BestCars Ibérica — Proyecto completo
 
-Proyecto para el concesionario **Best Cars Ibérica**. Panel de administración para gestión de stock, leads y estadísticas.
+Sistema integral para concesionario de vehículos premium: página web pública, panel de administración y API backend con Supabase.
 
-## Contenido
+## Estructura del proyecto
 
-- **BestCars_Panel/** — Panel de gestión (React, Vite, Tailwind, Radix UI)
-- **BestCars_Back-updated/** — API REST (opcional, para conectar datos reales)
-
-## Inicio rápido — Panel (Frontend)
-
-```bash
-cd BestCars_Panel
-npm install
-npm run dev
+```
+Bestcars_panelDef/
+├── BestCars_Back-updated/   # API (Node.js, Express, Prisma)
+├── Bestcars_front_DEF/      # Página web (React, Vite)
+├── BestCars_Panel/          # Panel admin (React, Vite)
+└── GUIA_ENTREGA_CLIENTE.md  # Guía detallada de entrega
 ```
 
-El panel estará disponible en `http://localhost:5173`.
+## Inicio rápido (desarrollo local)
 
-### Build para producción
-
-```bash
-cd BestCars_Panel
-npm run build
-```
-
-Los archivos se generan en `dist/`.
-
-## API (opcional)
-
-Si deseas conectar el panel a la API real:
+### 1. Backend
 
 ```bash
 cd BestCars_Back-updated
-npm install
 cp .env.example .env
-# Editar .env con tus credenciales
+# Editar .env: DATABASE_URL (Supabase), ADMIN_PASSWORD, CORS_ORIGINS
+npm install
 npm run db:generate
 npm run db:push
+npm run db:seed
 npm run dev
 ```
 
-Ver [BestCars_Back-updated/README.md](BestCars_Back-updated/README.md) para documentación de la API.
+El backend corre en **http://localhost:3001**
+
+### 2. Página web
+
+```bash
+cd Bestcars_front_DEF
+cp .env.example .env
+# .env: VITE_API_URL=http://localhost:3001
+npm install
+npm run dev
+```
+
+La web corre en **http://localhost:5173**
+
+### 3. Panel admin
+
+```bash
+cd BestCars_Panel
+cp .env.example .env
+# .env: VITE_API_URL=http://localhost:3001 (opcional; sin esto usa modo demo)
+npm install
+npm run dev
+```
+
+El panel corre en **http://localhost:5174**
+
+**Credenciales del panel**: Las configuradas en `ADMIN_USERNAME` y `ADMIN_PASSWORD` del backend.
+
+## Integración
+
+| Componente | Puerto | Conecta a |
+|------------|--------|------------|
+| Backend | 3001 | Supabase (PostgreSQL) |
+| Página web | 5173 | Backend (vehículos, contacto, test-drive) |
+| Panel | 5174 | Backend (auth, CRUD, leads) |
+
+- **Con `VITE_API_URL`**: Panel usa API real (login, vehículos, leads).
+- **Sin `VITE_API_URL`**: Panel funciona en modo demo con datos locales.
+
+## Documentación
+
+Ver [GUIA_ENTREGA_CLIENTE.md](./GUIA_ENTREGA_CLIENTE.md) para configuración de producción, Supabase y despliegue.
