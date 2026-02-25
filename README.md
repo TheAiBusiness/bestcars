@@ -19,7 +19,8 @@ Bestcars_panelDef/
 ```bash
 cd BestCars_Back-updated
 cp .env.example .env
-# Editar .env: DATABASE_URL (Supabase), ADMIN_PASSWORD, CORS_ORIGINS
+# Editar .env: reemplazar [YOUR-PASSWORD] en DATABASE_URL (Supabase > Settings > Database)
+# Configurar ADMIN_PASSWORD, CORS_ORIGINS
 npm install
 npm run db:generate
 npm run db:push
@@ -55,6 +56,21 @@ El panel corre en **http://localhost:5174**
 
 **Credenciales del panel**: Las configuradas en `ADMIN_USERNAME` y `ADMIN_PASSWORD` del backend.
 
+### Pruebas como entrega (build + serve)
+
+```bash
+# Backend
+cd BestCars_Back-updated && npm run build && npm start
+
+# Web (otra terminal)
+cd Bestcars_front_DEF && npm run build && npm run serve
+
+# Panel (otra terminal)
+cd BestCars_Panel && npm run build && npm run serve
+```
+
+Web en http://localhost:5173, Panel en http://localhost:5174.
+
 ## Integración
 
 | Componente | Puerto | Conecta a |
@@ -68,6 +84,19 @@ El panel corre en **http://localhost:5174**
 - **Con `VITE_API_URL`**: Panel usa API real (login, vehículos, leads).
 - **Sin `VITE_API_URL`**: Panel funciona en modo demo con datos locales.
 
+## Deploy
+
+**Guía completa:** [DEPLOY.md](./DEPLOY.md) — variables de producción, pasos por componente, checklist y opciones de hosting.
+
+Build de todos los proyectos (desde la raíz):
+
+```powershell
+.\build-all.ps1
+```
+
+En Linux/Mac: `chmod +x build-all.sh && ./build-all.sh`
+
 ## Documentación
 
-Ver [GUIA_ENTREGA_CLIENTE.md](./GUIA_ENTREGA_CLIENTE.md) para configuración de producción, Supabase y despliegue.
+- [GUIA_ENTREGA_CLIENTE.md](./GUIA_ENTREGA_CLIENTE.md) — configuración de producción y Supabase
+- [DEPLOY.md](./DEPLOY.md) — pasos de despliegue

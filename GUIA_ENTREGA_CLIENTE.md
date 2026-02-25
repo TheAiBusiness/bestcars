@@ -89,11 +89,34 @@ npm run build
 - **Panel**: Subdominio separado (ej. panel.bestcars.com)
 - **Supabase**: Ya configurado ✓
 
+## Pruebas como entrega (build + serve)
+
+Tras hacer build de web y panel, servir los builds para simular producción:
+
+```bash
+# Terminal 1: Backend
+cd BestCars_Back-updated && npm start
+
+# Terminal 2: Web
+cd Bestcars_front_DEF && npm run serve
+
+# Terminal 3: Panel
+cd BestCars_Panel && npm run serve
+```
+
+Web en http://localhost:5173, Panel en http://localhost:5174.
+
 ## Checklist para entrega
 
-- [ ] DATABASE_URL configurado en backend
+- [ ] DATABASE_URL configurado en backend (reemplazar [YOUR-PASSWORD] en .env)
 - [ ] db:push y db:seed ejecutados
 - [ ] CORS_ORIGINS con URLs de producción
 - [ ] SendGrid configurado (emails)
 - [ ] Variables de entorno en frontend (VITE_API_URL)
 - [ ] Build de frontend y panel sin errores
+- [ ] Login del panel funciona
+- [ ] Vehículos visibles en la web
+- [ ] Formularios de contacto y prueba de manejo operativos
+- [ ] Editor de escenas guarda y activa correctamente
+- [ ] Garaje muestra la escena activa
+- [ ] Credenciales documentadas para el cliente
