@@ -85,7 +85,7 @@ export function LoginPage() {
         </form>
 
         <p className="mt-6 text-xs text-white/40 text-center">
-          Credenciales configuradas en ADMIN_USERNAME y ADMIN_PASSWORD del backend
+          Por defecto: usuario y contraseña <strong>admin</strong>
         </p>
       </motion.div>
     </div>

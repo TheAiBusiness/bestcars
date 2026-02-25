@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite"
+    "dev": "vite",
+    "preview": "vite preview --port 5174",
+    "serve": "npx serve dist -p 5174"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "1.2.3",

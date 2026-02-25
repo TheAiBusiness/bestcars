@@ -1,3 +1,5 @@
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import type { Vehicle, Lead } from "../app/data/mock-data";
 import { mockVehicles, mockLeads } from "../app/data/mock-data";
 import { useLocalStorageState } from "../app/hooks/use-local-storage-state";
@@ -36,7 +38,15 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
         setLeadsState([...contactLeads, ...testDriveLeads]);
       })
       .catch((err) => {
-        if (!cancelled) toast.error(err instanceof Error ? err.message : "Error al cargar datos");
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : "Error al cargar datos";
+          const isNetwork = msg === "Failed to fetch" || msg.includes("NetworkError");
+          toast.error(
+            isNetwork
+              ? "No se pudo conectar al servidor. Arranca el backend (Bestcars_Back_DEF con npm run dev). Usando datos locales."
+              : msg
+          );
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

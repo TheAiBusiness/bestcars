@@ -29,7 +29,13 @@ async function fetchApi<T>(
   const token = getStoredToken();
   if (!skipAuth && token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API}${endpoint}`, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API}${endpoint}`, { ...init, headers });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Network error';
+    throw new Error(msg === 'Failed to fetch' ? 'No se pudo conectar al servidor. Comprueba que el backend esté en marcha.' : msg);
+  }
   if (res.status === 401) {
     setStoredToken(null);
     window.dispatchEvent(new CustomEvent('auth:session-expired'));

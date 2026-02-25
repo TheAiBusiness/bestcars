@@ -43,22 +43,22 @@ function extractSpec(specs: { key: string; value: string }[] | undefined, key: s
 export function apiVehicleToPanel(api: ApiVehicle): Vehicle {
   const price = parsePrice(api.price);
   const specs = api.specifications ?? {};
-  const motorSpecs = specs.motor ?? [];
-  const generalSpecs = specs.general ?? [];
+  const motorSpecs = Array.isArray(specs.motor) ? specs.motor : [];
+  const generalSpecs = Array.isArray(specs.general) ? specs.general : [];
 
   const kilometros = api.mileage ? parseFloat(api.mileage.replace(/[^\d]/g, '')) || 0 : 0;
 
   return {
     id: api.id,
     name: api.title,
-    brand: api.tags[0] ?? api.title.split(' ')[0] ?? 'N/A',
+    brand: (api.tags && api.tags[0]) ?? (api.title && api.title.split(' ')[0]) ?? 'N/A',
     model: api.title,
     year: api.year,
     price,
     priceHistory: [{ date: api.updatedAt, price }],
     status: mapStatusToPanel(api.status),
-    image: api.images[0] ?? '',
-    images: api.images?.length ? api.images : [],
+    image: (Array.isArray(api.images) && api.images[0]) ?? '',
+    images: Array.isArray(api.images) && api.images.length ? api.images : [],
     specs: {
       motor: (extractSpec(motorSpecs, 'Motor') || extractSpec(motorSpecs, 'motor') || api.fuelType) ?? '',
       potencia: (extractSpec(motorSpecs, 'Potencia') || extractSpec(motorSpecs, 'potencia')) ?? '',

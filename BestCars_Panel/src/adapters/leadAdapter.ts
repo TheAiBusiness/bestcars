@@ -45,7 +45,7 @@ export function apiTestDriveToLead(t: ApiTestDrive): Lead {
     phone: '',
     origin: 'web',
     status: mapApiStatusToLead(t.status),
-    notes: `Prueba de manejo. Último vehículo: ${t.lastVehicle}. Intereses: ${t.interests}. Uso principal: ${t.mainUse}. Edad: ${t.age}. ${t.notes ?? ''}`.trim(),
+    notes: `Prueba de manejo. Último vehículo: ${t.lastVehicle ?? ''}. Intereses: ${t.interests ?? ''}. Uso principal: ${t.mainUse ?? ''}. Edad: ${t.age ?? ''}. ${t.notes ?? ''}`.trim(),
     date: t.createdAt,
   };
 }
