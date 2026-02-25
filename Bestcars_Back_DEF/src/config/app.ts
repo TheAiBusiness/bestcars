@@ -18,8 +18,8 @@ const app: Express = express();
 // Seguridad: cabeceras HTTP
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// CORS: permite frontend (Vite dev + producción)
-const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:5174')
+// CORS: permite frontend (Vite dev puede usar 5173, 5174, 5175... + producción)
+const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:5175')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
@@ -45,6 +45,16 @@ app.use(
 
 // Parser de JSON para req.body
 app.use(express.json({ limit: '1mb' }));
+
+// Raíz: mensaje informativo (evita 404 al abrir http://localhost:3001 en el navegador)
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'BestCars API',
+    version: '1.0.0',
+    docs: '/api',
+    health: '/api/health',
+  });
+});
 
 // Logging de requests en desarrollo
 if (process.env.NODE_ENV === 'development') {
