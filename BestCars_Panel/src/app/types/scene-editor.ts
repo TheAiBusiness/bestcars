@@ -38,6 +38,8 @@ export type SceneEditorStorage = {
   activeSceneId: string;
   activePositionId: PositionId;
   previewUrl: string;
+  /** ID de la escena que está proyectada en la web (bloqueada / visible para el usuario) */
+  webActiveSceneId: string | null;
 };
 
 export const POSITION_ORDER: PositionId[] = [

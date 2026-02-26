@@ -1,0 +1,9 @@
+# Railway/Nixpacks: build y start del backend (Root Directory = Bestcars_Back_DEF)
+[phases.install]
+cmds = ["npm install", "npx prisma generate"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

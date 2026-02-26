@@ -92,6 +92,10 @@ Panel en **http://localhost:5174** (o el puerto que muestre Vite).
 
 **Guía detallada:** [DEPLOY.md](./DEPLOY.md) — variables de producción, pasos por componente, checklist y opciones de hosting.
 
+**Railway (monorepo):** [DEPLOY_RAILWAY.md](./DEPLOY_RAILWAY.md) — deploy del repo Arennull/bestcars con tres servicios (Root Directory: `Bestcars_Back_DEF`, `Bestcars_front_DEF`, `BestCars_Panel`).
+
+**Túneles Cloudflare (probar en local con URLs públicas):** [TUNELES_CLOUDFLARE.md](./TUNELES_CLOUDFLARE.md) — exponer backend, web y panel con `.\run-tunnels-cloudflare.ps1`.
+
 Build de todos los proyectos desde la raíz:
 
 ```powershell

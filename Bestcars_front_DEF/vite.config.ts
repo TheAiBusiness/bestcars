@@ -21,4 +21,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    // Permitir acceso via dominios de túnel (Cloudflare) u otros hosts
+    allowedHosts: true,
+  },
 })

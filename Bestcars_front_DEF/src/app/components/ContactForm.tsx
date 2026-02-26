@@ -7,14 +7,17 @@ import { getPhoneErrorMessage } from '../../utils/validation.js';
 interface ContactFormProps {
   vehicleId?: string;
   vehicleTitle?: string;
+  /** Llamado la primera vez que el usuario interactúa con el formulario (focus en cualquier campo). */
+  onFirstInteraction?: () => void;
 }
 
 export interface ContactFormRef {
   focusNameField: () => void;
 }
 
-export const ContactForm = forwardRef<ContactFormRef, ContactFormProps>(({ vehicleId, vehicleTitle }, ref) => {
+export const ContactForm = forwardRef<ContactFormRef, ContactFormProps>(({ vehicleId, vehicleTitle, onFirstInteraction }, ref) => {
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const hasFiredFirstInteraction = useRef(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -98,12 +101,18 @@ export const ContactForm = forwardRef<ContactFormRef, ContactFormProps>(({ vehic
     }
   };
 
+  const handleFormFocus = () => {
+    if (hasFiredFirstInteraction.current || !onFirstInteraction) return;
+    hasFiredFirstInteraction.current = true;
+    onFirstInteraction();
+  };
+
   return (
     <aside className="sticky top-[calc(68px+20px)]">
       <article className="rounded-3xl overflow-hidden bg-white/[0.03] border border-white/[.06] shadow-xl shadow-black/20 backdrop-blur-sm p-6">
         <h2 className="m-0 mb-5 text-lg font-black text-white">Solicitar Información</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} onFocus={handleFormFocus} className="space-y-4">
           <div>
             <label
               className="block text-white/70 mb-2"

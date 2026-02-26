@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Gauge, Share2 } from 'lucide-react';
+import { Calendar, Gauge, Share2, Car } from 'lucide-react';
 import { toast } from 'sonner';
 interface ProductHeaderProps {
   title: string;
@@ -13,7 +13,7 @@ interface ProductHeaderProps {
   vehicleTitle?: string;
 }
 
-export function ProductHeader({ title, year, mileage, price, priceSubtext, tags, onRequestTestDrive: _onRequestTestDrive, vehicleId: _vehicleId, vehicleTitle: _vehicleTitle }: ProductHeaderProps) {
+export function ProductHeader({ title, year, mileage, price, priceSubtext, tags, onRequestTestDrive, vehicleId: _vehicleId, vehicleTitle: _vehicleTitle }: ProductHeaderProps) {
   const [isInstagramActive, setIsInstagramActive] = useState(false);
 
   const handleShare = async () => {
@@ -93,6 +93,17 @@ export function ProductHeader({ title, year, mileage, price, priceSubtext, tags,
           </div>
 
           <div className="flex flex-wrap gap-1.5 sm:gap-2 md:gap-3 items-center justify-center lg:justify-start">
+            {onRequestTestDrive && (
+              <button
+                type="button"
+                onClick={onRequestTestDrive}
+                className="h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 md:px-6 rounded-lg sm:rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-lg shadow-emerald-600/20 transition-all duration-200 select-none text-xs sm:text-sm md:text-base flex-shrink-0 whitespace-nowrap"
+                style={{ fontWeight: 600 }}
+              >
+                <Car className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                Solicitar prueba de manejo
+              </button>
+            )}
             <a
               href="tel:+34659164104"
               className="h-9 sm:h-10 md:h-11 px-2.5 sm:px-3 md:px-6 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-500 text-white inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-lg shadow-blue-600/20 transition-all duration-200 select-none text-xs sm:text-sm md:text-base flex-shrink-0 whitespace-nowrap"

@@ -19,6 +19,26 @@ export function getVehicleImageUrl(filenameOrUrl: string): string {
   return `${API}/vehicles/images/${encodeURIComponent(s)}`;
 }
 
+/**
+ * Convierte una URL de imagen del panel (para mostrar) al valor que debe guardar la API:
+ * si es una URL de nuestro backend (/api/vehicles/images/...), devuelve solo el nombre de archivo;
+ * si es URL externa (Unsplash, etc.), se devuelve tal cual.
+ * Así la BD es la fuente única y la web usa las mismas imágenes que el panel.
+ */
+export function toApiImageValue(displayUrl: string): string {
+  if (!displayUrl || typeof displayUrl !== 'string') return '';
+  const s = displayUrl.trim();
+  const prefix = `${API}/vehicles/images/`;
+  if (s.startsWith(prefix)) {
+    try {
+      return decodeURIComponent(s.slice(prefix.length));
+    } catch {
+      return s;
+    }
+  }
+  return s;
+}
+
 export function getStoredToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -74,6 +94,14 @@ export async function login(username: string, password: string): Promise<{ token
     skipAuth: true,
   });
   return data;
+}
+
+/** Cambiar contraseña del panel (requiere estar logueado) */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await fetchApi<{ success: boolean }>('/auth/password', {
+    method: 'PATCH',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
 }
 
 /** Obtener todos los vehículos */

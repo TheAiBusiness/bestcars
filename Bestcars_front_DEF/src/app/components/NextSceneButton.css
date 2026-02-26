@@ -1,0 +1,92 @@
+/* Same style as GarageArrow: pill button, right side, above Terms and Conditions */
+.next-scene-btn {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 4rem;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 24px;
+  height: 24px;
+  border: 1px solid white;
+  border-radius: 12.5px;
+  background: transparent;
+  color: white;
+  text-decoration: none;
+  overflow: hidden;
+  transition: width 0.5s ease-in-out;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  pointer-events: all;
+}
+
+.next-scene-btn:hover {
+  width: 155px;
+}
+
+.next-scene-icon {
+  position: absolute;
+  top: 6px;
+  left: 5px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.next-scene-icon svg {
+  display: block;
+}
+
+.next-scene-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  white-space: nowrap;
+  line-height: 1;
+  padding: 5px 15px 5px 22px;
+  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: white;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.next-scene-btn:hover .next-scene-text {
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .next-scene-btn {
+    right: 1rem;
+    bottom: 4.5rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+  }
+
+  .next-scene-icon {
+    top: 9px;
+    left: 8px;
+  }
+
+  .next-scene-icon svg {
+    width: 18px;
+    height: 15px;
+  }
+
+  .next-scene-text {
+    padding: 8px 18px 8px 28px;
+    font-size: 13px;
+  }
+
+  .next-scene-btn:hover {
+    width: 180px;
+  }
+}

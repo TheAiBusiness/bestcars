@@ -1,0 +1,10 @@
+# Railway/Nixpacks: panel admin (Root Directory = BestCars_Panel)
+# Build genera dist/; start sirve dist/ (usa PORT de Railway)
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

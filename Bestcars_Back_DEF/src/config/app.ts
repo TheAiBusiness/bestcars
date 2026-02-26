@@ -15,8 +15,13 @@ dotenv.config();
 
 const app: Express = express();
 
-// Seguridad: cabeceras HTTP
-app.use(helmet({ contentSecurityPolicy: false }));
+// Seguridad: cabeceras HTTP. CORP "cross-origin" para que las imágenes carguen tras túnel Cloudflare.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // CORS: en desarrollo acepta cualquier localhost (Vite usa puertos variables). En producción usa CORS_ORIGINS.
 const corsOrigins = (process.env.CORS_ORIGINS || '')
@@ -26,34 +31,44 @@ const corsOrigins = (process.env.CORS_ORIGINS || '')
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+// Siempre permitir localhost (web 5173, panel 5174) y túneles Cloudflare; en producción también CORS_ORIGINS
+function corsOrigin(origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void): void {
+  if (!origin) {
+    cb(null, true);
+    return;
+  }
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    cb(null, true);
+    return;
+  }
+  if (origin.includes('trycloudflare.com')) {
+    cb(null, true);
+    return;
+  }
+  if (corsOrigins.length > 0) {
+    cb(null, corsOrigins.includes(origin));
+    return;
+  }
+  cb(null, true);
+}
+
 app.use(
   cors({
-    origin: isDev
-      ? (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
-          if (!origin || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-            cb(null, true);
-          } else {
-            cb(null, corsOrigins.includes(origin));
-          }
-        }
-      : corsOrigins.length > 0
-        ? corsOrigins
-        : true,
+    origin: corsOrigin,
     credentials: true,
   })
 );
 
-// Rate limiting general API: 150 req/15min
-app.use(
-  '/api',
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 150,
-    message: { error: 'Demasiadas peticiones. Intenta más tarde.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-);
+// Rate limiting: excluir imágenes (muchas peticiones GET) para evitar 429 tras túnel Cloudflare
+const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  message: { error: 'Demasiadas peticiones. Intenta más tarde.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => req.path.includes('/vehicles/images/'),
+});
+app.use('/api', apiRateLimit);
 
 
 // Parser de JSON para req.body

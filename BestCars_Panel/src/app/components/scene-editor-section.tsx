@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Copy, Trash2, Save, RotateCcw, Image as ImageIcon } from "lucide-react";
+import { Plus, Copy, Trash2, Save, RotateCcw, Image as ImageIcon, Lock } from "lucide-react";
 
 import { Vehicle } from "../data/mock-data";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -20,6 +20,7 @@ import {
   createEmptyScene,
   createEmptySlot,
 } from "../types/scene-editor";
+import "./scene-editor-hotspot.css";
 
 type SceneEditorSectionProps = {
   vehicles: Vehicle[];
@@ -38,17 +39,21 @@ function nowIso(): string {
 
 const DEFAULT_PREVIEW_URL = "http://localhost:5173/scene-preview";
 
+/** Imagen de la escena principal (Best Cars Ibérica) — no editable. Colocar el archivo en public/scene-principal-bestcars.png en web y panel. */
+const SCENE_PRINCIPAL_IMAGE_URL = "/scene-principal-bestcars.png";
+
 export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false, isAuthenticated = false }: SceneEditorSectionProps) {
   const initialStorage: SceneEditorStorage = useMemo(() => {
     const scene = createEmptyScene({
       name: "Escena 1",
-      backgroundUrl: "",
+      backgroundUrl: SCENE_PRINCIPAL_IMAGE_URL,
     });
     return {
       scenes: [scene],
       activeSceneId: scene.id,
       activePositionId: "parking-1",
       previewUrl: DEFAULT_PREVIEW_URL,
+      webActiveSceneId: null,
     };
   }, []);
 
@@ -68,6 +73,18 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
   const activeScene =
     storage.scenes.find((s) => s.id === storage.activeSceneId) ?? storage.scenes[0];
 
+  // Escena que está ahora mismo en la web (Best Cars Ibérica) — siempre la mostramos como referencia.
+  const webActiveScene = storage.webActiveSceneId
+    ? storage.scenes.find((s) => s.id === storage.webActiveSceneId) ?? null
+    : null;
+
+  // Lista de escenas con la escena de la web siempre primera (Escena 1 = lo que ve el usuario en best cars).
+  const scenesForList = useMemo(() => {
+    if (!webActiveScene) return storage.scenes;
+    const rest = storage.scenes.filter((s) => s.id !== storage.webActiveSceneId);
+    return [webActiveScene, ...rest];
+  }, [storage.scenes, storage.webActiveSceneId, webActiveScene]);
+
   useEffect(() => {
     if (!activeScene) {
       const fallback = createEmptyScene({ name: "Escena 1", backgroundUrl: "" });
@@ -76,6 +93,7 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
         activeSceneId: fallback.id,
         activePositionId: "parking-1",
         previewUrl: storage.previewUrl ?? DEFAULT_PREVIEW_URL,
+        webActiveSceneId: storage.webActiveSceneId ?? null,
       });
       return;
     }
@@ -95,6 +113,12 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
   const [draftBackgroundUrl, setDraftBackgroundUrl] = useState<string>(
     activeScene?.backgroundUrl ?? "",
   );
+
+  const displayBackgroundUrl =
+    draftBackgroundUrl ||
+    (activeScene?.backgroundUrl ?? "") ||
+    (webActiveScene?.backgroundUrl ?? "") ||
+    (storage.webActiveSceneId === activeScene?.id ? SCENE_PRINCIPAL_IMAGE_URL : "");
 
   // Cada vez que cambiamos de escena/posición, “cargamos” borradores desde lo guardado.
   useEffect(() => {
@@ -208,6 +232,10 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
 
   const deleteActiveScene = () => {
     if (!activeScene) return;
+    if (storage.webActiveSceneId && activeScene.id === storage.webActiveSceneId) {
+      toast.error("No se puede eliminar la escena visible en la web (bloqueada).");
+      return;
+    }
     if (!window.confirm(`¿Eliminar la escena "${activeScene.name}"?`)) return;
 
     if (apiMode && isAuthenticated && !activeScene.id.startsWith("scene_")) {
@@ -459,9 +487,12 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
         <div className="flex items-center gap-2 flex-wrap">
           {apiMode && isAuthenticated && activeScene && !activeScene.id.startsWith("scene_") && (
             <button
-              onClick={() => setActiveSceneApi(activeScene.id)}
+              onClick={() => {
+                setStorage((prev) => ({ ...prev, webActiveSceneId: activeScene.id }));
+                setActiveSceneApi(activeScene.id);
+              }}
               className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-emerald-200 text-sm flex items-center gap-2"
-              title="Mostrar esta escena en la web"
+              title="Mostrar esta escena en la web (pasará a ser la escena bloqueada)"
             >
               Activar en web
             </button>
@@ -476,8 +507,9 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
           </button>
           <button
             onClick={deleteActiveScene}
-            className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/15 transition-all text-red-200 text-sm flex items-center gap-2"
-            title="Eliminar escena"
+            disabled={storage.webActiveSceneId === activeScene?.id}
+            className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/15 transition-all text-red-200 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-500/10"
+            title={storage.webActiveSceneId === activeScene?.id ? "No se puede eliminar la escena visible en la web" : "Eliminar escena"}
           >
             <Trash2 className="w-4 h-4" />
             Eliminar
@@ -495,24 +527,49 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
             </div>
 
             <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-              {storage.scenes.map((scene) => {
+              {scenesForList.map((scene) => {
                 const isActive = scene.id === storage.activeSceneId;
+                const isWebActive = scene.id === storage.webActiveSceneId;
                 return (
                   <button
                     key={scene.id}
                     onClick={() => selectScene(scene.id)}
-                    className={`w-full text-left px-3 py-2 rounded-xl border transition-all ${
+                    className={`w-full text-left rounded-xl border transition-all overflow-hidden ${
                       isActive
-                        ? "bg-blue-500/10 border-blue-500/30 text-white"
-                        : "bg-white/[0.02] border-white/10 text-white/70 hover:border-white/20 hover:bg-white/[0.04]"
+                        ? "bg-blue-500/10 border-blue-500/30 text-white ring-1 ring-blue-500/30"
+                        : isWebActive
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-100"
+                          : "bg-white/[0.02] border-white/10 text-white/70 hover:border-white/20 hover:bg-white/[0.04]"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 opacity-70" />
-                      <span className="text-sm">{scene.name}</span>
-                    </div>
-                    <div className="text-xs text-white/35 mt-1 truncate">
-                      {scene.backgroundUrl ? scene.backgroundUrl : "Sin fondo"}
+                    {isWebActive && scene.backgroundUrl && (
+                      <div
+                        className="w-full aspect-video bg-black/40 bg-cover bg-center border-b border-amber-500/20"
+                        style={{ backgroundImage: `url(${scene.backgroundUrl})` }}
+                        title="Fondo actual de la web (Best Cars Ibérica)"
+                      />
+                    )}
+                    <div className="px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        {isWebActive ? (
+                          <Lock className="w-4 h-4 shrink-0 text-amber-400" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4 opacity-70" />
+                        )}
+                        <span className="text-sm font-medium">
+                          {isWebActive ? "Escena principal — Best Cars Ibérica" : scene.name}
+                        </span>
+                      </div>
+                      <div className="text-xs mt-1 flex items-center gap-1 flex-wrap">
+                        {isWebActive && (
+                          <span className="shrink-0 text-amber-400/90">Lo que se ve en la web · No se puede eliminar</span>
+                        )}
+                        {!isWebActive && (
+                          <span className="text-white/35 truncate">
+                            {scene.backgroundUrl ? scene.backgroundUrl : "Sin fondo"}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </button>
                 );
@@ -584,6 +641,14 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
 
           {/* Canvas */}
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-sm overflow-hidden">
+            {storage.webActiveSceneId === activeScene?.id && (
+              <div className="px-4 py-2.5 bg-amber-500/15 border-b border-amber-500/30 flex items-center gap-2">
+                <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                <p className="text-sm text-amber-100">
+                  <strong>Escena visible en la web.</strong> El fondo que ves aquí es el garaje de Best Cars Ibérica que ven los usuarios en la página. Puedes editar posiciones y vehículos; esta escena no se puede eliminar.
+                </p>
+              </div>
+            )}
             <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
               <div>
                 <h4 className="text-white/80 text-sm">Composición</h4>
@@ -604,20 +669,20 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
             <div
               className="relative w-full aspect-[16/9] bg-black"
               style={{
-                backgroundImage: draftBackgroundUrl ? `url(${draftBackgroundUrl})` : undefined,
+                backgroundImage: displayBackgroundUrl ? `url(${displayBackgroundUrl})` : undefined,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
               onClick={handleCanvasClick}
             >
-              {!draftBackgroundUrl && (
+              {!displayBackgroundUrl && (
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent" />
               )}
 
-              {/* Hotspot del vehículo seleccionado */}
+              {/* Hotspot del vehículo seleccionado - mismo estilo que los botones sobre los coches en la web (dot + ring + label) */}
               {activeVehicle ? (
                 <div
-                  className="absolute left-1/2 top-1/2 select-none"
+                  className="absolute left-1/2 top-1/2 select-none scene-editor-hotspot"
                   style={{
                     transform: `translate(-50%, -50%) translate(${draftSlot.transform.x}px, ${draftSlot.transform.y}px) rotate(${draftSlot.transform.rotation}deg) scale(${draftSlot.transform.scale})`,
                     cursor: "grab",
@@ -626,13 +691,9 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
                   onPointerMove={onVehiclePointerMove}
                   onPointerUp={onVehiclePointerUp}
                 >
-                  {/* Marcador visual del punto clicable */}
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full border-2 border-blue-400 bg-blue-500/40 shadow-lg" />
-                    <span className="px-2 py-0.5 rounded-full bg-black/60 text-white/80 text-xs">
-                      {activeVehicle.name}
-                    </span>
-                  </div>
+                  <span className="scene-editor-hotspot-label">{activeVehicle.name}</span>
+                  <span className="scene-editor-hotspot-dot" />
+                  <span className="scene-editor-hotspot-ring" />
                 </div>
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -653,6 +714,19 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
           {/* Scene background */}
           <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4 backdrop-blur-sm space-y-3">
             <h4 className="text-white/80 text-sm">Fondo de la escena</h4>
+            {storage.webActiveSceneId === activeScene?.id ? (
+              <>
+                <p className="text-xs text-amber-400/90 mb-2">
+                  Escena principal (Best Cars Ibérica). El fondo es fijo y no se puede editar.
+                </p>
+                <input
+                  value={draftBackgroundUrl}
+                  readOnly
+                  className="w-full px-3 py-2 rounded-xl bg-white/[0.02] border border-amber-500/20 text-white/50 cursor-not-allowed"
+                />
+              </>
+            ) : (
+              <>
             <input
               value={draftBackgroundUrl}
               onChange={(e) => setDraftBackgroundUrl(e.target.value)}
@@ -677,6 +751,8 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
                 <RotateCcw className="w-4 h-4" />
               </button>
             </div>
+              </>
+            )}
           </div>
 
           {/* Vehicle picker */}

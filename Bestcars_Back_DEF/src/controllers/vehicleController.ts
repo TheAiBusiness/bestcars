@@ -29,22 +29,25 @@ function generateVehicleId(): string {
 }
 
 /** Formatea vehículo para la API (frontend espera createdAt/updatedAt como string ISO) */
-function formatVehicle(vehicle: {
-  id: string;
-  title: string;
-  year: number;
-  mileage: string;
-  price: string;
-  priceSubtext: string | null;
-  fuelType: string | null;
-  seats: string | null;
-  description: string | null;
-  images: string[];
-  tags: string[];
-  specifications: unknown;
-  createdAt: Date;
-  updatedAt: Date;
-}) {
+function formatVehicle(
+  vehicle: {
+    id: string;
+    title: string;
+    year: number;
+    mileage: string;
+    price: string;
+    priceSubtext: string | null;
+    fuelType: string | null;
+    seats: string | null;
+    description: string | null;
+    images: string[];
+    tags: string[];
+    specifications: unknown;
+    createdAt: Date;
+    updatedAt: Date;
+  },
+  enrichment?: { leads?: number; views?: number; clicks?: number; status?: string; priority?: number }
+) {
   return {
     ...vehicle,
     priceSubtext: vehicle.priceSubtext ?? undefined,
@@ -54,7 +57,38 @@ function formatVehicle(vehicle: {
     specifications: vehicle.specifications ?? undefined,
     createdAt: vehicle.createdAt.toISOString(),
     updatedAt: vehicle.updatedAt.toISOString(),
+    leads: enrichment?.leads ?? 0,
+    views: enrichment?.views ?? 0,
+    clicks: enrichment?.clicks ?? 0,
+    status: enrichment?.status ?? 'available',
+    priority: enrichment?.priority ?? 0,
   };
+}
+
+/**
+ * Obtiene el número de leads por vehicleId (contact + test-drive) para estadísticas.
+ */
+async function getLeadCountsByVehicleId(): Promise<Record<string, number>> {
+  const [contactCounts, testDriveCounts] = await Promise.all([
+    prisma.contactSubmission.groupBy({
+      by: ['vehicleId'],
+      where: { vehicleId: { not: null } },
+      _count: { id: true },
+    }),
+    prisma.testDriveSubmission.groupBy({
+      by: ['vehicleId'],
+      where: { vehicleId: { not: null } },
+      _count: { id: true },
+    }),
+  ]);
+  const map: Record<string, number> = {};
+  for (const row of contactCounts) {
+    if (row.vehicleId) map[row.vehicleId] = (map[row.vehicleId] ?? 0) + row._count.id;
+  }
+  for (const row of testDriveCounts) {
+    if (row.vehicleId) map[row.vehicleId] = (map[row.vehicleId] ?? 0) + row._count.id;
+  }
+  return map;
 }
 
 /**
@@ -63,10 +97,25 @@ function formatVehicle(vehicle: {
 export const getAllVehicles = async (_req: Request, res: Response): Promise<void> => {
   try {
     if (useDatabase) {
-      const vehicles = await prisma.vehicle.findMany({
-        orderBy: { createdAt: 'desc' },
+      const [vehicles, leadCounts] = await Promise.all([
+        prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' } }),
+        getLeadCountsByVehicleId(),
+      ]);
+      const vWithStats = (v: { id: string; views?: number; clicks?: number }) => ({
+        views: (v as { views?: number }).views ?? 0,
+        clicks: (v as { clicks?: number }).clicks ?? 0,
       });
-      res.json(vehicles.map(formatVehicle));
+      res.json(
+        vehicles.map((v, i) =>
+          formatVehicle(v, {
+            leads: leadCounts[v.id] ?? 0,
+            views: vWithStats(v).views,
+            clicks: vWithStats(v).clicks,
+            status: 'available',
+            priority: i + 1,
+          })
+        )
+      );
       return;
     }
     res.json(
@@ -87,6 +136,47 @@ export const getAllVehicles = async (_req: Request, res: Response): Promise<void
 };
 
 /**
+ * POST /api/vehicles/:id/track - Registrar vista o clic desde la web (público, sin auth).
+ * Body: { type: 'view' | 'click' }
+ */
+export const trackVehicle = async (req: Request, res: Response): Promise<void> => {
+  if (!useDatabase) {
+    res.status(204).send();
+    return;
+  }
+  try {
+    const { id } = req.params;
+    const type = (req.body?.type ?? '').toString().toLowerCase();
+    if (!id || (type !== 'view' && type !== 'click')) {
+      res.status(400).json({ error: 'Invalid request. Body: { type: "view" | "click" }' });
+      return;
+    }
+    const vehicle = await prisma.vehicle.findUnique({ where: { id } });
+    if (!vehicle) {
+      res.status(204).send();
+      return;
+    }
+    const currentViews = (vehicle as { views?: number }).views ?? 0;
+    const currentClicks = (vehicle as { clicks?: number }).clicks ?? 0;
+    if (type === 'view') {
+      await prisma.vehicle.update({
+        where: { id },
+        data: { views: currentViews + 1 },
+      });
+    } else {
+      await prisma.vehicle.update({
+        where: { id },
+        data: { clicks: currentClicks + 1 },
+      });
+    }
+    res.status(204).send();
+  } catch (error) {
+    console.error('[vehicleController] Error tracking vehicle:', error);
+    res.status(500).json({ error: 'Failed to track' });
+  }
+};
+
+/**
  * GET /api/vehicles/:id
  */
 export const getVehicleById = async (req: Request, res: Response): Promise<void> => {
@@ -99,7 +189,21 @@ export const getVehicleById = async (req: Request, res: Response): Promise<void>
         res.status(404).json({ error: 'Vehicle not found' });
         return;
       }
-      res.json(formatVehicle(vehicle));
+      const [contactCount, testDriveCount] = await Promise.all([
+        prisma.contactSubmission.count({ where: { vehicleId: id } }),
+        prisma.testDriveSubmission.count({ where: { vehicleId: id } }),
+      ]);
+      const views = (vehicle as { views?: number }).views ?? 0;
+      const clicks = (vehicle as { clicks?: number }).clicks ?? 0;
+      res.json(
+        formatVehicle(vehicle, {
+          leads: contactCount + testDriveCount,
+          views,
+          clicks,
+          status: 'available',
+          priority: 0,
+        })
+      );
       return;
     }
 

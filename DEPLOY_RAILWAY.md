@@ -1,6 +1,6 @@
 # Deploy en Railway — Paso a paso
 
-Guía para desplegar el **backend** (y opcionalmente web/panel) en [Railway](https://railway.app).
+Guía para desplegar el **backend**, **web** y **panel** en [Railway](https://railway.app). Repositorio: **Arennull/bestcars** (monorepo). Cada servicio usa **Root Directory** y tiene `nixpacks.toml` para build/start automático.
 
 ---
 
@@ -121,25 +121,26 @@ Alternativa sencilla para web y panel: después de tener el backend en Railway, 
 
 ---
 
-## Opción B: Backend desde GitHub
+## Opción B: Monorepo desde GitHub (Arennull/bestcars)
+
+Repositorio único con backend, web y panel. Creas **tres servicios** en el mismo proyecto, cada uno con su **Root Directory**.
 
 ### Paso 1 — Cuenta y proyecto
 
 1. Entra en **https://railway.app** e inicia sesión (GitHub recomendado).
 2. **New Project**.
 3. Elige **Deploy from GitHub repo**.
-4. Conecta tu cuenta de GitHub y autoriza (incluye repos privados si lo permites).
-5. Selecciona el repositorio **TheAiBusiness/Bestcars_Back_DEF** (o el que tengas con solo el backend).
-6. Railway crea un **service** y empieza a detectar el proyecto.
+4. Conecta GitHub y autoriza. Selecciona el repositorio **Arennull/bestcars**.
+5. Railway crea un **service**. Lo configuramos como backend.
 
-### Paso 2 — Configuración del servicio (Backend) [Opción B]
+### Paso 2 — Configuración del servicio (Backend)
 
-1. Entra en el **service** (clic en el recuadro del backend).
-2. **Settings** (o pestaña *Settings*):
-   - **Root Directory:** dejar vacío (el repo ya es solo el backend).
-   - **Build Command:** `npm install && npm run build`
-   - **Start Command:** `npm start`
-   - **Watch Paths:** (opcional) dejar por defecto para que redepliegue al hacer push.
+1. Entra en el **service** (clic en el recuadro).
+2. **Settings**:
+   - **Root Directory:** `Bestcars_Back_DEF`
+   - **Build Command:** (opcional; si hay `nixpacks.toml` se usa automático) `npm install && npx prisma generate && npm run build`
+   - **Start Command:** (opcional) `npm start`
+   - **Watch Paths:** (opcional) `Bestcars_Back_DEF/**` para redeploy solo cuando cambie el backend.
 
 3. **Variables** (pestaña *Variables* o *Environment*):
    - Añade las variables de entorno (sustituye valores de ejemplo):
@@ -147,12 +148,12 @@ Alternativa sencilla para web y panel: después de tener el backend en Railway, 
 | Variable | Valor (ejemplo) | Nota |
 |----------|-----------------|------|
 | `NODE_ENV` | `production` | |
-| `PORT` | *(no hace falta)* | Railway la asigna (ej. 8080) |
-| `CORS_ORIGINS` | `https://tu-web.up.railway.app,https://tu-panel.up.railway.app` | Ajustar cuando tengas las URLs de web y panel |
+| `PORT` | *(no hace falta)* | Railway la asigna |
+| `DATABASE_URL` | URL PostgreSQL (Supabase) | **Requerida** para persistencia; añadir `?sslmode=require` si aplica |
+| `JWT_SECRET` | *cadena-aleatoria-32-chars* | **Obligatorio** en producción |
 | `ADMIN_USERNAME` | `admin` | Cambiar en producción |
 | `ADMIN_PASSWORD` | *tu-contraseña-segura* | **Obligatorio cambiar** |
-| `JWT_SECRET` | *cadena-aleatoria-32-chars* | **Obligatorio** |
-| `DATABASE_URL` | *(opcional)* | Si usas BD; si no, modo mock |
+| `CORS_ORIGINS` | `https://tu-web.up.railway.app,https://tu-panel.up.railway.app` | Ajustar cuando tengas las URLs de web y panel (vacío al inicio) |
 
 Para probar rápido sin web/panel aún, puedes poner:
 `CORS_ORIGINS=*` (permite cualquier origen; luego lo restringes).
@@ -183,33 +184,31 @@ Para probar rápido sin web/panel aún, puedes poner:
 
 ---
 
-## Parte 2: Web y panel en Railway (estáticos)
+## Parte 2: Web y panel en Railway (mismo monorepo Arennull/bestcars)
 
-Puedes desplegar la web y el panel como **Static Websites** en el mismo proyecto de Railway.
+En el **mismo proyecto** Railway, añade dos servicios más desde el mismo repo. Cada uno tiene `nixpacks.toml` y script `npm start` que sirve `dist/` (usa `PORT` de Railway).
 
-### Opción A — Repos separados (recomendado)
+### Web pública
 
-1. En el **mismo proyecto** Railway, **Add Service** → **GitHub Repo**.
-2. Elige **Bestcars_front_DEF** para la web.
-3. En **Settings** del nuevo service:
-   - **Build Command:** `npm install && npm run build`
-   - **Output Directory:** `dist`
-   - **Root Directory:** (vacío)
-4. Railway detecta salida estática y sirve `dist/`. Activa **Generate Domain**.
-5. En **Variables** añade:
-   - `VITE_API_URL` = `https://tu-url-del-backend.up.railway.app`  
-   (la URL que copiaste en la Parte 1).
-6. Repite un service similar para el **panel** (repo BestcarsIberica_panelDEF), mismo `VITE_API_URL` y **Output Directory** `dist`.
+1. **New** → **GitHub Repo** → **Arennull/bestcars** (segundo service).
+2. **Settings**:
+   - **Root Directory:** `Bestcars_front_DEF`
+   - **Build Command:** (opcional) `npm install && npm run build`
+   - **Start Command:** (opcional) `npm start` (sirve `dist/` con el paquete `serve`)
+3. **Variables:** `VITE_API_URL` = URL pública del backend (sin barra final).
+4. **Generate Domain**. Anota la URL de la web.
 
-### Opción B — Monorepo (Bestcarsiberica_project)
+### Panel de administración
 
-1. **Add Service** → mismo repo **Bestcarsiberica_project**.
-2. **Web:**  
-   - **Root Directory:** `Bestcars_front_DEF`  
-   - **Build Command:** `npm install && npm run build`  
-   - **Output Directory:** `dist`  
-   - Variable `VITE_API_URL` = URL del backend.
-3. **Panel:** otro service, **Root Directory:** `BestCars_Panel`, mismo build/output y `VITE_API_URL`.
+1. **New** → **GitHub Repo** → **Arennull/bestcars** (tercer service).
+2. **Settings**:
+   - **Root Directory:** `BestCars_Panel`
+   - **Build Command:** (opcional) `npm install && npm run build`
+   - **Start Command:** (opcional) `npm start`
+3. **Variables:** `VITE_API_URL` = misma URL del backend.
+4. **Generate Domain**. Anota la URL del panel.
+
+Luego en el **backend**, edita **CORS_ORIGINS** con las URLs de la web y del panel (separadas por coma).
 
 ---
 
@@ -225,12 +224,12 @@ Puedes desplegar la web y el panel como **Static Websites** en el mismo proyecto
 
 ## Checklist rápido
 
-- [ ] Backend en Railway con build + start correctos
-- [ ] Variables: `NODE_ENV`, `CORS_ORIGINS`, `ADMIN_PASSWORD`, `JWT_SECRET`
-- [ ] Generate Domain activado para el backend
-- [ ] `/api/health` responde OK en la URL pública
+- [ ] Supabase: schema aplicado (`cd Bestcars_Back_DEF && npm run db:push`) antes del primer deploy
+- [ ] Backend en Railway: Root Directory `Bestcars_Back_DEF`, variables `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `CORS_ORIGINS`
+- [ ] Generate Domain activado para backend, web y panel
+- [ ] `/api/health` responde `{"ok":true,"database":"configured"}` en la URL del backend
 - [ ] Web y panel con `VITE_API_URL` = URL del backend
-- [ ] CORS con las URLs reales de web y panel (no `*` en producción si quieres restringir)
+- [ ] CORS_ORIGINS con las URLs reales de web y panel
 
 ---
 

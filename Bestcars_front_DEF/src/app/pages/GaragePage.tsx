@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 // @ts-expect-error - Importación de imagen con espacios en el nombre
 import garageImage from "../../assets/Ilustración_sin_título 103.jpg";
 import logoImage from "../../assets/IMG_2007.PNG";
@@ -9,25 +9,55 @@ import { StockMenu } from "../components/StockMenu";
 import { api, getVehicleImageUrl, type Scene, type ScenePosition } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import "./GaragePage.css";
+import "./GaragePageSceneNav.css";
 
 const MOBILE_START_POSITION = 50;
 
 export default function GaragePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sceneParam = searchParams.get("scene");
+  const sceneIndexFromUrl = sceneParam !== null ? Math.max(0, parseInt(sceneParam, 10) || 0) : null;
+
   const [garageImageLoaded, setGarageImageLoaded] = useState(false);
   const [logoImageLoaded, setLogoImageLoaded] = useState(false);
   const [garageImageError, setGarageImageError] = useState(false);
   const [, setLogoImageError] = useState(false);
   const [isStockMenuOpen, setIsStockMenuOpen] = useState(false);
-  const [activeScene, setActiveScene] = useState<Scene | null>(null);
+  const [scenes, setScenes] = useState<Scene[]>([]);
+  const [activeSceneId, setActiveSceneId] = useState<string | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api.getActiveScene().then((scene) => {
-      if (scene?.backgroundUrl) setActiveScene(scene);
-    }).catch(() => {});
-    api.getAllVehicles().then(setVehicles).catch(() => {});
+    Promise.all([api.getScenes(), api.getActiveScene(), api.getAllVehicles()])
+      .then(([sceneList, active, vList]) => {
+        const list = Array.isArray(sceneList) ? sceneList : [];
+        if (list.length === 0 && active?.backgroundUrl) {
+          setScenes([active]);
+          setActiveSceneId(active.id);
+        } else {
+          setScenes(list);
+          if (active?.id) setActiveSceneId(active.id);
+        }
+        setVehicles(vList);
+      })
+      .catch(() => {});
   }, []);
+
+  const defaultIndex = activeSceneId && scenes.length > 0
+    ? Math.max(0, scenes.findIndex((s) => s.id === activeSceneId))
+    : 0;
+  const currentSceneIndex = sceneIndexFromUrl !== null ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1)) : defaultIndex;
+  const activeScene = scenes[currentSceneIndex] && scenes[currentSceneIndex].backgroundUrl
+    ? scenes[currentSceneIndex]
+    : scenes[0]?.backgroundUrl
+      ? scenes[0]
+      : null;
+
+  const goToScene = (index: number) => {
+    const next = Math.max(0, Math.min(index, scenes.length - 1));
+    setSearchParams(next === 0 ? {} : { scene: String(next) });
+  };
 
   useEffect(() => {
     if (pageRef.current) {
@@ -150,6 +180,43 @@ export default function GaragePage() {
       >
         Volver al Inicio
       </Link>
+      {/* Navigate between scenes - same style as Home "Entrar al garaje" / "Siguiente escena" */}
+      {scenes.length > 1 && (
+        <div className="garage-scene-nav">
+          <button
+            type="button"
+            className="garage-scene-nav-btn"
+            onClick={() => goToScene(currentSceneIndex - 1)}
+            disabled={currentSceneIndex <= 0}
+            aria-label="Escena anterior"
+          >
+            <span className="garage-scene-nav-icon garage-scene-nav-prev">
+              <svg width="13" height="11" viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white">
+                <line x1="1.29" y1="5.46" x2="6.12" y2="0.63" strokeWidth="2" />
+                <path d="M2.71 5.46L6.11 8.86" strokeWidth="2" />
+                <line x1="2.49" y1="5.46" x2="12" y2="5.46" strokeWidth="2" />
+              </svg>
+            </span>
+            <span className="garage-scene-nav-text">Escena anterior</span>
+          </button>
+          <button
+            type="button"
+            className="garage-scene-nav-btn"
+            onClick={() => goToScene(currentSceneIndex + 1)}
+            disabled={currentSceneIndex >= scenes.length - 1}
+            aria-label="Siguiente escena"
+          >
+            <span className="garage-scene-nav-icon">
+              <svg width="13" height="11" viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white">
+                <line x1="11.7052" y1="4.77742" x2="6.8748" y2="9.60777" strokeWidth="2" />
+                <path d="M10.2912 4.77745L6.89487 1.38135" strokeWidth="2" />
+                <line x1="10.5151" y1="5.45581" x2="0.998047" y2="5.45581" strokeWidth="2" />
+              </svg>
+            </span>
+            <span className="garage-scene-nav-text">Siguiente escena</span>
+          </button>
+        </div>
+      )}
       <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} hideButton={true} disableClose={true} />
     </div>
   );

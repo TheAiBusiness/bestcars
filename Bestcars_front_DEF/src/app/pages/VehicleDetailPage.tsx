@@ -18,6 +18,7 @@ import { StatsRow } from '../components/StatsRow';
 import { DescriptionSection } from '../components/DescriptionSection';
 import { SpecificationsSection } from '../components/SpecificationsSection';
 import { ContactForm, type ContactFormRef } from '../components/ContactForm';
+import { QuizForm } from '../components/QuizForm';
 import { api, getVehicleImageUrl } from '../../services/api.js';
 import { vehicleToStats } from '../../utils/vehicleUtils.js';
 import type { Vehicle } from '../../types/vehicle.js';
@@ -28,6 +29,10 @@ export function VehicleDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const contactFormRef = useRef<ContactFormRef>(null);
+
+  const hasTrackedView = useRef(false);
+  const hasTrackedClick = useRef(false);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -51,6 +56,13 @@ export function VehicleDetailPage() {
 
     fetchVehicle();
   }, [id]);
+
+  // Registrar vista cuando se muestra la ficha (una vez por carga)
+  useEffect(() => {
+    if (!vehicle?.id || hasTrackedView.current) return;
+    hasTrackedView.current = true;
+    api.trackVehicleView(vehicle.id);
+  }, [vehicle?.id]);
 
   // SEO: título dinámico por vehículo (hook siempre en el mismo orden, antes de cualquier return)
   useEffect(() => {
@@ -129,7 +141,13 @@ export function VehicleDetailPage() {
               price={vehicle.price ?? ''}
               priceSubtext={vehicle.priceSubtext ?? ''}
               tags={Array.isArray(vehicle.tags) ? vehicle.tags : []}
-              onRequestTestDrive={() => contactFormRef.current?.focusNameField()}
+              onRequestTestDrive={() => {
+                if (!hasTrackedClick.current) {
+                  hasTrackedClick.current = true;
+                  api.trackVehicleClick(vehicle.id);
+                }
+                setIsQuizOpen(true);
+              }}
               vehicleId={vehicle.id}
               vehicleTitle={vehicle.title ?? vehicle.id}
             />
@@ -142,10 +160,26 @@ export function VehicleDetailPage() {
           </div>
 
           {/* Right Column (Sidebar) */}
-          <ContactForm ref={contactFormRef} vehicleId={vehicle.id} vehicleTitle={vehicle.title} />
+          <ContactForm
+            ref={contactFormRef}
+            vehicleId={vehicle.id}
+            vehicleTitle={vehicle.title}
+            onFirstInteraction={() => {
+              if (!hasTrackedClick.current) {
+                hasTrackedClick.current = true;
+                api.trackVehicleClick(vehicle.id);
+              }
+            }}
+          />
         </section>
       </main>
 
+      <QuizForm
+        isOpen={isQuizOpen}
+        onClose={() => setIsQuizOpen(false)}
+        vehicleId={vehicle.id}
+        vehicleTitle={vehicle.title ?? vehicle.id}
+      />
     </div>
   );
 }

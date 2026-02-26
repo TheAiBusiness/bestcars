@@ -3,7 +3,7 @@
  */
 import type { Vehicle } from '../app/data/mock-data';
 import type { ApiVehicle, ApiVehicleCreate, ApiVehicleUpdate } from '../services/api';
-import { getVehicleImageUrl } from '../services/api';
+import { getVehicleImageUrl, toApiImageValue } from '../services/api';
 
 function parsePrice(priceStr: string): number {
   const num = priceStr.replace(/[^\d,.-]/g, '').replace(',', '');
@@ -93,7 +93,7 @@ export function panelVehicleToApiCreate(
     fuelType: v.specs.combustible || undefined,
     seats: undefined,
     description: v.description || undefined,
-    images: v.images?.length ? v.images : (v.image ? [v.image] : []),
+    images: (v.images?.length ? v.images : (v.image ? [v.image] : [])).map(toApiImageValue),
     tags: v.tags?.length ? v.tags : [v.brand],
     status: mapStatusToApi(v.status),
     specifications: {
@@ -118,7 +118,7 @@ export function panelVehicleToApiUpdate(updates: Partial<Vehicle>): ApiVehicleUp
   if (updates.price !== undefined) out.price = formatPrice(updates.price);
   if (updates.status !== undefined) out.status = mapStatusToApi(updates.status);
   if (updates.description !== undefined) out.description = updates.description;
-  if (updates.images !== undefined) out.images = updates.images;
+  if (updates.images !== undefined) out.images = updates.images.map(toApiImageValue);
   if (updates.tags !== undefined) out.tags = updates.tags;
   if (updates.specs !== undefined) {
     const s = updates.specs;

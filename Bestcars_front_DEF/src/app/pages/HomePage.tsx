@@ -4,8 +4,10 @@ import { Loader2 } from "lucide-react";
 import houseImage from "../../assets/Bestcars-home.png";
 import CarHotspots from "../components/CarHotspots";
 import GarageArrow from "../components/GarageArrow";
+import { NextSceneButton } from "../components/NextSceneButton";
 import { StockMenu } from "../components/StockMenu";
 import { TermsAndConditions } from "../components/TermsAndConditions";
+import { api } from "../../services/api.js";
 import "./HomePage.css";
 
 // ========== ADJUST MOBILE START POSITION ==========
@@ -19,7 +21,12 @@ export function HomePage() {
   const [houseImageError, setHouseImageError] = useState(false);
   const [isStockMenuOpen, setIsStockMenuOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [scenesCount, setScenesCount] = useState(0);
   const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api.getScenes().then((list) => setScenesCount(list.length)).catch(() => {});
+  }, []);
 
   const allImagesLoaded = houseImageLoaded;
   const hasError = houseImageError;
@@ -69,7 +76,16 @@ export function HomePage() {
         )}
       </div>
       <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} />
-      {allImagesLoaded && <TermsAndConditions isStockMenuOpen={isStockMenuOpen} onOpenChange={setIsTermsOpen} />}
+      {allImagesLoaded && (
+        <>
+          <NextSceneButton
+            totalScenes={scenesCount}
+            isStockMenuOpen={isStockMenuOpen}
+            isTermsOpen={isTermsOpen}
+          />
+          <TermsAndConditions isStockMenuOpen={isStockMenuOpen} onOpenChange={setIsTermsOpen} />
+        </>
+      )}
     </div>
   );
 }

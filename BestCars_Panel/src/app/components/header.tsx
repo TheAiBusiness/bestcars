@@ -2,8 +2,7 @@
  * Cabecera del panel con título de sección, búsqueda y acciones.
  * El valor de búsqueda se delega al padre (controled component).
  */
-import { Search, ListFilter, Bell } from "lucide-react";
-import { motion } from "motion/react";
+import { Search } from "lucide-react";
 
 interface HeaderProps {
   title: string;
@@ -40,25 +39,6 @@ export function Header({ title, searchPlaceholder = 'Buscar...', searchValue = '
               className="w-64 md:w-80 pl-11 pr-4 py-2.5 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 focus:bg-white/[0.05] transition-all backdrop-blur-sm"
             />
           </div>
-
-          {/* Filter Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] transition-all backdrop-blur-sm"
-          >
-            <ListFilter className="w-4 h-4 text-white/50" />
-          </motion.button>
-
-          {/* Notifications */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-2.5 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] transition-all backdrop-blur-sm"
-          >
-            <Bell className="w-4 h-4 text-white/50" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-blue-500 rounded-full" />
-          </motion.button>
         </div>
       </div>
     </header>

@@ -236,9 +236,13 @@ export async function seedDatabase() {
                 seats: '5 Plazas',
                 description: 'Porsche Cayenne Turbo GT 2023, el SUV más rápido del mundo en el circuito de Nürburgring. Motor V8 biturbo de 4.0L que genera 640 HP y 850 Nm de par máximo. Este vehículo redefine las expectativas de rendimiento en un SUV, combinando la versatilidad de un todo terreno con el corazón de un superdeportivo. Equipado con suspensión adaptativa PASM, sistema de tracción integral PTM, frenos de cerámica PCCB y escape deportivo activo. Interior en cuero Race-Tex con detalles en carbono, asientos deportivos adaptables y sistema de sonido Burmester 3D High-End Surround Sound.',
                 images: [
-                    'cayenne1.jpeg',
-                    'cayenne2.jpeg',
-                    'cayenne3.jpeg',
+                    'TURBO GT_9.jpg',
+                    'TURBO GT_10.jpg',
+                    'TURBO GT_11.jpg',
+                    'TURBO GT_12.jpg',
+                    'TURBO GT_13.jpg',
+                    'TURBO GT_14.jpg',
+                    'TURBO GT_15.jpg',
                 ],
                 tags: ['SUV', 'Deportivo', 'Premium'],
                 specifications: {

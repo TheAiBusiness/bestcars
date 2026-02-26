@@ -1,0 +1,10 @@
+# Railway/Nixpacks: web estática (Root Directory = Bestcars_front_DEF)
+# Build genera dist/; start sirve dist/ (usa PORT de Railway)
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

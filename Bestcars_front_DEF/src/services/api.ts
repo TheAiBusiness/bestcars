@@ -4,8 +4,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const API_VEHICLES_IMAGES = `${API_BASE_URL}/api/vehicles/images`;
 
 /**
- * URL de imagen de vehículo (sincronizado con el panel y el backend).
- * Si ya es URL (http/https/data) se devuelve tal cual; si no, se usa el endpoint del API.
+ * URL de imagen de vehículo: misma fuente que el panel (API/backend).
+ * - Si el valor es una URL (http/https/data) se devuelve tal cual.
+ * - Si es un nombre de archivo, se resuelve contra el backend (/api/vehicles/images/).
+ * Así el stock en la web muestra exactamente las mismas imágenes que el stock del panel.
  */
 export function getVehicleImageUrl(filenameOrUrl: string): string {
   if (!filenameOrUrl || typeof filenameOrUrl !== 'string') return '';
@@ -92,10 +94,51 @@ export const api = {
   },
 
   /**
+   * Get all scenes (for navigating between scenes on the web).
+   */
+  async getScenes(): Promise<Scene[]> {
+    const raw = await fetchApi<Scene[]>('/api/scenes');
+    return Array.isArray(raw) ? raw : [];
+  },
+
+  /**
    * Get active scene (for homepage/garage composition)
    */
   async getActiveScene(): Promise<Scene | null> {
     return fetchApi<Scene | null>('/api/scenes/active');
+  },
+
+  /**
+   * Registrar vista de ficha de vehículo (para estadísticas del panel).
+   * Llamar cuando el usuario entra en la página de detalle.
+   */
+  async trackVehicleView(vehicleId: string): Promise<void> {
+    try {
+      await fetch(`${API_BASE_URL}/api/vehicles/${encodeURIComponent(vehicleId)}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'view' }),
+        cache: 'no-store',
+      });
+    } catch {
+      // Silenciar errores de tracking (no afectar UX)
+    }
+  },
+
+  /**
+   * Registrar clic en CTA (contacto / prueba de manejo) para estadísticas del panel.
+   */
+  async trackVehicleClick(vehicleId: string): Promise<void> {
+    try {
+      await fetch(`${API_BASE_URL}/api/vehicles/${encodeURIComponent(vehicleId)}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'click' }),
+        cache: 'no-store',
+      });
+    } catch {
+      // Silenciar errores de tracking
+    }
   },
 };
 

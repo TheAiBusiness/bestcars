@@ -13,6 +13,7 @@ import {
   createVehicle,
   updateVehicle,
   deleteVehicle,
+  trackVehicle,
 } from '../controllers/vehicleController.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -43,9 +44,10 @@ router.get('/images/:filename', (req: Request, res: Response) => {
       res.status(404).end();
       return;
     }
-    // CORS obligatorio para <img> cross-origin: si falta, el navegador muestra alt en vez de la imagen
+    // CORS y CORP para que las imágenes carguen desde la web tras túnel Cloudflare
     const origin = req.get('Origin');
     res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.sendFile(filepath, (err) => {
       if (err && !res.headersSent) res.status(500).end();
     });
@@ -55,6 +57,7 @@ router.get('/images/:filename', (req: Request, res: Response) => {
 });
 
 router.get('/:id', getVehicleById);
+router.post('/:id/track', trackVehicle);
 
 router.post('/', requireAuth, createVehicle);
 router.patch('/:id', requireAuth, updateVehicle);

@@ -7,6 +7,7 @@ import {
 } from "../app/types/scene-editor";
 import {
   getScenes,
+  getActiveScene,
   createScene as apiCreateScene,
   updateScene as apiUpdateScene,
   deleteScene as apiDeleteScene,
@@ -51,18 +52,28 @@ export function useSceneEditorApi(
     let cancelled = false;
     setLoading(true);
 
-    getScenes()
-      .then((scenes) => {
+    Promise.all([getScenes(), getActiveScene()])
+      .then(([scenes, activeSceneFromWeb]) => {
         if (cancelled) return;
         if (scenes.length === 0) return;
 
         const editorScenes = scenes.map(apiSceneToEditorScene);
-        const active = scenes.find((s) => s.isActive) ?? scenes[0];
+        // Poner primero la escena que está cargada en la web (Escena 1 = lo que ve el usuario en la web)
+        const activeId = activeSceneFromWeb?.id ?? scenes.find((s) => s.isActive)?.id ?? scenes[0]?.id;
+        const ordered =
+          activeId != null && editorScenes.length > 1
+            ? [
+                ...editorScenes.filter((s) => s.id === activeId),
+                ...editorScenes.filter((s) => s.id !== activeId),
+              ]
+            : editorScenes;
+        const firstId = ordered[0]?.id;
         setStorage((prev) => ({
           ...prev,
-          scenes: editorScenes,
-          activeSceneId: active?.id ?? editorScenes[0]?.id ?? prev.activeSceneId,
+          scenes: ordered,
+          activeSceneId: firstId ?? prev.activeSceneId,
           previewUrl: prev.previewUrl,
+          webActiveSceneId: activeId ?? null,
         }));
       })
       .catch((err) => {

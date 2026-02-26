@@ -1,0 +1,8 @@
+URLs QA - Listo para probar
+
+Web:   https://vocals-competitions-prospective-contacting.trycloudflare.com
+Panel: https://msgid-tale-seekers-boom.trycloudflare.com  (usuario: admin  contraseña: admin)
+API:   https://suites-specialist-comparable-preston.trycloudflare.com
+
+Backend, web y panel están en marcha. Los 3 túneles Cloudflare están activos.
+No cierres Cursor/terminal hasta que termines de probar.

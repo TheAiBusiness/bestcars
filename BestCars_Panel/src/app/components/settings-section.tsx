@@ -1,15 +1,50 @@
 /**
  * Sección de configuración del panel.
- * Perfil de usuario, notificaciones, seguridad e idioma.
+ * Perfil, notificaciones, seguridad (solo cambiar contraseña) e idioma (solo español).
  */
+import { useState } from "react";
 import { motion } from "motion/react";
-import { User, Bell, Palette, Database, Shield, Globe } from 'lucide-react';
+import { User, Bell, Shield, Lock, Globe } from "lucide-react";
+import { toast } from "sonner";
+import { changePassword as apiChangePassword } from "../../services/api";
 
 export function SettingsSection() {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmitPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.trim().length < 6) {
+      toast.error("La nueva contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("La nueva contraseña y la confirmación no coinciden");
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiChangePassword(currentPassword, newPassword);
+      toast.success("Contraseña actualizada. Usa la nueva contraseña en el próximo inicio de sesión.");
+      setModalOpen(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: unknown) {
+      const msg = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Error al cambiar la contraseña";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* User Settings */}
+        {/* Perfil de Usuario */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -49,7 +84,7 @@ export function SettingsSection() {
           </div>
         </motion.div>
 
-        {/* Notifications */}
+        {/* Notificaciones */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,11 +134,11 @@ export function SettingsSection() {
           </div>
         </motion.div>
 
-        {/* Security */}
+        {/* Seguridad: solo Cambiar contraseña (funcional) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.2 }}
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">
@@ -113,23 +148,22 @@ export function SettingsSection() {
             <h3 className="text-lg text-white">Seguridad</h3>
           </div>
           <div className="space-y-3">
-            <button className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 text-white/90 transition-all text-left">
+            <button
+              type="button"
+              onClick={() => setModalOpen(true)}
+              className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] text-white/90 transition-all text-left flex items-center gap-3"
+            >
+              <Lock className="w-4 h-4 text-white/50" />
               Cambiar contraseña
-            </button>
-            <button className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 text-white/90 transition-all text-left">
-              Activar autenticación de dos factores
-            </button>
-            <button className="w-full px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 text-white/90 transition-all text-left">
-              Ver sesiones activas
             </button>
           </div>
         </motion.div>
 
-        {/* Language */}
+        {/* Idioma: solo Español */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.3 }}
           className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
         >
           <div className="flex items-center gap-3 mb-6">
@@ -143,21 +177,86 @@ export function SettingsSection() {
               <label className="block text-sm text-white/50 mb-2">Idioma</label>
               <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]">
                 <option value="es" className="bg-black">Español</option>
-                <option value="en" className="bg-black">English</option>
-                <option value="fr" className="bg-black">Français</option>
               </select>
             </div>
             <div>
               <label className="block text-sm text-white/50 mb-2">Zona horaria</label>
               <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]">
                 <option value="europe/madrid" className="bg-black">Europe/Madrid (GMT+1)</option>
-                <option value="europe/london" className="bg-black">Europe/London (GMT+0)</option>
-                <option value="america/new_york" className="bg-black">America/New York (GMT-5)</option>
               </select>
             </div>
           </div>
         </motion.div>
       </div>
+
+      {/* Modal Cambiar contraseña */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-900 p-6 shadow-xl">
+            <h4 className="text-lg text-white mb-4">Cambiar contraseña</h4>
+            <form onSubmit={handleSubmitPassword} className="space-y-4">
+              <div>
+                <label className="block text-sm text-white/50 mb-2">Contraseña actual</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-white/50 mb-2">Nueva contraseña (mín. 6 caracteres)</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-white/50 mb-2">Confirmar nueva contraseña</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalOpen(false);
+                    setCurrentPassword("");
+                    setNewPassword("");
+                    setConfirmPassword("");
+                  }}
+                  className="flex-1 px-4 py-3 rounded-xl border border-white/10 text-white/70 hover:bg-white/[0.05] transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-medium transition-all disabled:opacity-50"
+                >
+                  {loading ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

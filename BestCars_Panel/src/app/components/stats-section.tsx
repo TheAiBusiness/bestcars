@@ -4,7 +4,7 @@
  */
 import { useMemo } from "react";
 import { motion } from "motion/react";
-import { TrendingUp, TrendingDown, Eye, MousePointer, Users, Video } from 'lucide-react';
+import { TrendingUp, Eye, MousePointer, Users, Video, ChartBar } from 'lucide-react';
 import { Vehicle } from '../data/mock-data';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import {
@@ -68,10 +68,12 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
   }), [vehicles]);
 
   const topPerformers = useMemo(() => vehicles
+    .slice()
     .sort((a, b) => {
       const convA = a.views > 0 ? a.leads / a.views : 0;
       const convB = b.views > 0 ? b.leads / b.views : 0;
-      return convB - convA;
+      if (convA !== convB) return convB - convA;
+      return b.leads - a.leads;
     })
     .slice(0, 3), [vehicles]);
 
@@ -101,8 +103,14 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
           </div>
           <p className="text-3xl text-white mb-1">{totalStats.totalViews.toLocaleString()}</p>
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-green-400" />
-            <span className="text-xs text-green-400">+12.5% vs mes anterior</span>
+            {totalStats.totalViews > 0 ? (
+              <>
+                <TrendingUp className="w-3 h-3 text-green-400" />
+                <span className="text-xs text-green-400">Vistas de fichas</span>
+              </>
+            ) : (
+              <span className="text-xs text-white/40">Próximamente</span>
+            )}
           </div>
         </motion.div>
 
@@ -120,8 +128,14 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
           </div>
           <p className="text-3xl text-white mb-1">{totalStats.totalClicks.toLocaleString()}</p>
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-green-400" />
-            <span className="text-xs text-green-400">+8.3% vs mes anterior</span>
+            {totalStats.totalClicks > 0 ? (
+              <>
+                <TrendingUp className="w-3 h-3 text-green-400" />
+                <span className="text-xs text-green-400">Clics en CTAs</span>
+              </>
+            ) : (
+              <span className="text-xs text-white/40">Próximamente</span>
+            )}
           </div>
         </motion.div>
 
@@ -140,7 +154,7 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
           <p className="text-3xl text-white mb-1">{totalStats.totalLeads}</p>
           <div className="flex items-center gap-1">
             <TrendingUp className="w-3 h-3 text-green-400" />
-            <span className="text-xs text-green-400">+15.7% vs mes anterior</span>
+            <span className="text-xs text-green-400">Contacto + prueba de manejo</span>
           </div>
         </motion.div>
 
@@ -158,8 +172,11 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
           </div>
           <p className="text-3xl text-white mb-1">{totalStats.avgConversion.toFixed(2)}%</p>
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-3 h-3 text-green-400" />
-            <span className="text-xs text-green-400">+2.1% vs mes anterior</span>
+            {totalStats.totalViews > 0 ? (
+              <span className="text-xs text-green-400">Leads / vistas</span>
+            ) : (
+              <span className="text-xs text-white/40">Con vistas activas</span>
+            )}
           </div>
         </motion.div>
       </div>
