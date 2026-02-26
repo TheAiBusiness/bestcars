@@ -3,7 +3,8 @@
  * Conecta con BestCars_Back-updated (vehículos, contactos, test-drive, auth).
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Sin barra final para evitar ...dominio.com//api (404)
+const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const API = `${API_BASE}/api`;
 
 const TOKEN_KEY = 'bestcars_admin_token';

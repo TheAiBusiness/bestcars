@@ -1,6 +1,7 @@
 import type { Vehicle, ContactFormData, ContactSubmissionResponse, TestDriveFormData, TestDriveSubmissionResponse } from '../types/vehicle.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Sin barra final para evitar ...dominio.com//api/... (404)
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
 const API_VEHICLES_IMAGES = `${API_BASE_URL}/api/vehicles/images`;
 
 /**
@@ -24,7 +25,8 @@ class ApiError extends Error {
 }
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${path}`;
   
   try {
     const response = await fetch(url, {
