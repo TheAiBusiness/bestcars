@@ -362,7 +362,7 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
       ...(data.description !== undefined && { description: data.description }),
       ...(data.images !== undefined && { images: data.images }),
       ...(data.tags !== undefined && { tags: data.tags }),
-      ...(data.specifications !== undefined && { specifications: data.specifications as Prisma.InputJsonValue }),
+      ...(data.specifications !== undefined && { specifications: data.specifications as unknown as Prisma.InputJsonValue }),
     } as Prisma.VehicleUpdateInput;
     const vehicle = await prisma.vehicle.update({
       where: { id },
