@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { SceneEditorStorage } from "../app/types/scene-editor";
-import {
-  createEmptyScene,
-  createEmptySlot,
-} from "../app/types/scene-editor";
+import type { SceneEditorStorage, Scene, Hotspot } from "../app/types/scene-editor";
+import { createEmptyScene } from "../app/types/scene-editor";
 import {
   getScenes,
   getActiveScene,
@@ -12,29 +9,42 @@ import {
   updateScene as apiUpdateScene,
   deleteScene as apiDeleteScene,
   setActiveScene as apiSetActiveScene,
+  duplicateScene as apiDuplicateScene,
 } from "../services/api";
+import type { ApiScene } from "../services/api";
 
-export function apiSceneToEditorScene(api: {
-  id: string;
-  name: string;
-  backgroundUrl: string;
-  positions: Record<string, unknown>;
-}) {
-  const positions = api.positions as Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }>;
-  const defaultPositions = ["parking-1", "parking-2", "parking-3", "rampa", "parking-4"].reduce(
-    (acc, pos) => {
-      acc[pos] = positions?.[pos] ?? createEmptySlot();
-      return acc;
-    },
-    {} as Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }>
-  );
+/** Convierte escena del API (hotspots[] o positions legacy) a escena del editor */
+export function apiSceneToEditorScene(api: ApiScene): Scene {
+  let hotspots: Hotspot[] = [];
+  if (Array.isArray(api.hotspots) && api.hotspots.length > 0) {
+    hotspots = api.hotspots.map((h) => ({
+      id: h.id,
+      vehicleId: h.vehicleId,
+      x: Number(h.x) || 0,
+      y: Number(h.y) || 0,
+      createdAt: h.createdAt,
+    }));
+  } else if (api.positions && typeof api.positions === "object" && !Array.isArray(api.positions)) {
+    for (const [slotId, slot] of Object.entries(api.positions)) {
+      const s = slot as { vehicleId: string | null; transform?: { x: number; y: number }; updatedAt?: string };
+      if (!s?.vehicleId) continue;
+      const t = s.transform ?? { x: 0, y: 0 };
+      hotspots.push({
+        id: slotId,
+        vehicleId: s.vehicleId,
+        x: Number(t.x) || 0,
+        y: Number(t.y) || 0,
+        createdAt: s.updatedAt,
+      });
+    }
+  }
   return {
     id: api.id,
     name: api.name,
     backgroundUrl: api.backgroundUrl ?? "",
-    positions: defaultPositions,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    hotspots,
+    createdAt: api.createdAt ?? new Date().toISOString(),
+    updatedAt: api.updatedAt ?? new Date().toISOString(),
   };
 }
 
@@ -58,7 +68,6 @@ export function useSceneEditorApi(
         if (scenes.length === 0) return;
 
         const editorScenes = scenes.map(apiSceneToEditorScene);
-        // Poner primero la escena que está cargada en la web (Escena 1 = lo que ve el usuario en la web)
         const activeId = activeSceneFromWeb?.id ?? scenes.find((s) => s.isActive)?.id ?? scenes[0]?.id;
         const ordered =
           activeId != null && editorScenes.length > 1
@@ -72,6 +81,7 @@ export function useSceneEditorApi(
           ...prev,
           scenes: ordered,
           activeSceneId: firstId ?? prev.activeSceneId,
+          activeHotspotId: prev.activeHotspotId,
           previewUrl: prev.previewUrl,
           webActiveSceneId: activeId ?? null,
         }));
@@ -89,7 +99,7 @@ export function useSceneEditorApi(
   }, [apiMode, isAuthenticated, setStorage]);
 
   const persistScene = useCallback(
-    async (scene: { id: string; name: string; backgroundUrl: string; positions: Record<string, unknown> }) => {
+    async (scene: Scene) => {
       if (!apiMode || !isAuthenticated) return;
 
       const isApiId = !scene.id.startsWith("scene_");
@@ -98,26 +108,24 @@ export function useSceneEditorApi(
           await apiUpdateScene(scene.id, {
             name: scene.name,
             backgroundUrl: scene.backgroundUrl,
-            positions: scene.positions,
+            hotspots: scene.hotspots,
           });
           toast.success("Escena guardada");
         } else {
           const created = await apiCreateScene({
             name: scene.name,
             backgroundUrl: scene.backgroundUrl,
-            positions: scene.positions,
+            hotspots: scene.hotspots,
           });
           setStorage((prev) => ({
             ...prev,
-            scenes: prev.scenes.map((s) =>
-              s.id === scene.id ? apiSceneToEditorScene(created) : s
-            ),
+            scenes: prev.scenes.map((s) => (s.id === scene.id ? apiSceneToEditorScene(created) : s)),
             activeSceneId: prev.activeSceneId === scene.id ? created.id : prev.activeSceneId,
           }));
           toast.success("Escena creada");
         }
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Error al guardar");
+        toast.error(err instanceof Error ? err.message : "No se pudo guardar. Reintenta.");
       }
     },
     [apiMode, isAuthenticated, setStorage]
@@ -126,7 +134,7 @@ export function useSceneEditorApi(
   const deleteSceneApi = useCallback(
     async (sceneId: string) => {
       if (!apiMode || !isAuthenticated) return;
-      if (sceneId.startsWith("scene_")) return; // Local only
+      if (sceneId.startsWith("scene_")) return;
 
       try {
         await apiDeleteScene(sceneId);
@@ -138,12 +146,14 @@ export function useSceneEditorApi(
               ...prev,
               scenes: [fallback],
               activeSceneId: fallback.id,
+              activeHotspotId: null,
             };
           }
           return {
             ...prev,
             scenes: next,
             activeSceneId: prev.activeSceneId === sceneId ? next[0].id : prev.activeSceneId,
+            activeHotspotId: prev.activeHotspotId,
           };
         });
         toast.success("Escena eliminada");
@@ -161,7 +171,6 @@ export function useSceneEditorApi(
         toast.error("Guarda la escena primero para activarla");
         return;
       }
-
       try {
         await apiSetActiveScene(sceneId);
         toast.success("Escena activada en la web");
@@ -172,5 +181,29 @@ export function useSceneEditorApi(
     [apiMode, isAuthenticated]
   );
 
-  return { loading, persistScene, deleteSceneApi, setActiveSceneApi };
+  const duplicateSceneApi = useCallback(
+    async (sceneId: string) => {
+      if (!apiMode || !isAuthenticated) return;
+      if (sceneId.startsWith("scene_")) {
+        toast.error("Guarda la escena primero para poder duplicarla");
+        return;
+      }
+      try {
+        const created = await apiDuplicateScene(sceneId);
+        const editorScene = apiSceneToEditorScene(created);
+        setStorage((prev) => ({
+          ...prev,
+          scenes: [...prev.scenes, editorScene],
+          activeSceneId: editorScene.id,
+          activeHotspotId: null,
+        }));
+        toast.success("Escena duplicada");
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : "Error al duplicar");
+      }
+    },
+    [apiMode, isAuthenticated, setStorage]
+  );
+
+  return { loading, persistScene, deleteSceneApi, setActiveSceneApi, duplicateSceneApi };
 }

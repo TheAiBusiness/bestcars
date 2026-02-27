@@ -144,11 +144,22 @@ export const api = {
   },
 };
 
+export interface Hotspot {
+  id: string;
+  vehicleId: string;
+  x: number;
+  y: number;
+  createdAt?: string;
+}
+
 export interface Scene {
   id: string;
   name: string;
   backgroundUrl: string;
-  positions: Record<string, ScenePosition>;
+  /** Lista de hotspots (siempre presente en respuestas del API) */
+  hotspots?: Hotspot[];
+  /** @deprecated Legacy: objeto por slot; si no hay hotspots, normalizar desde aquí */
+  positions?: Record<string, ScenePosition>;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -159,4 +170,25 @@ export interface ScenePosition {
   vehicleId: string | null;
   transform: { x: number; y: number; scale: number; rotation: number };
   updatedAt: string;
+}
+
+/** Convierte scene.positions (legacy) a Hotspot[] si no hay scene.hotspots */
+export function sceneHotspots(scene: Scene | null | undefined): Hotspot[] {
+  if (!scene) return [];
+  if (Array.isArray(scene.hotspots)) return scene.hotspots;
+  const pos = scene.positions;
+  if (!pos || typeof pos !== 'object' || Array.isArray(pos)) return [];
+  const out: Hotspot[] = [];
+  for (const [slotId, slot] of Object.entries(pos)) {
+    if (!slot?.vehicleId) continue;
+    const t = slot.transform ?? { x: 0, y: 0 };
+    out.push({
+      id: slotId,
+      vehicleId: slot.vehicleId,
+      x: Number(t.x) || 0,
+      y: Number(t.y) || 0,
+      createdAt: slot.updatedAt,
+    });
+  }
+  return out;
 }

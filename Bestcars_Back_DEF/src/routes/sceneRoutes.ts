@@ -7,6 +7,7 @@ import express from 'express';
 import {
   createScene,
   deleteScene,
+  duplicateScene,
   getAllScenes,
   getActiveScene,
   getSceneById,
@@ -23,6 +24,7 @@ router.get('/active', asyncHandler(getActiveScene));
 router.get('/:id', asyncHandler(getSceneById));
 
 router.post('/', requireAuth, asyncHandler(createScene));
+router.post('/:id/duplicate', requireAuth, asyncHandler(duplicateScene));
 router.patch('/:id', requireAuth, asyncHandler(updateScene));
 router.patch('/:id/activate', requireAuth, asyncHandler(setActiveScene));
 router.delete('/:id', requireAuth, asyncHandler(deleteScene));

@@ -7,7 +7,7 @@ import garageImage from "../../assets/Ilustración_sin_título 103.jpg";
 import logoImage from "../../assets/IMG_2007.PNG";
 import { StockMenu } from "../components/StockMenu";
 import SceneHotspots from "../components/SceneHotspots";
-import { api, getVehicleImageUrl, type Scene, type ScenePosition } from "../../services/api.js";
+import { api, getVehicleImageUrl, type Scene, sceneHotspots } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import "./GaragePage.css";
 import "./GaragePageSceneNav.css";
@@ -76,8 +76,7 @@ export default function GaragePage() {
   }, [scenes.length, currentSceneIndex]);
 
   const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
-  const positions = (activeScene?.positions ?? {}) as Record<string, ScenePosition>;
-  const positionIds = ["parking-1", "parking-2", "parking-3", "rampa", "parking-4"];
+  const hotspots = sceneHotspots(activeScene);
 
   const showScene = activeScene?.backgroundUrl && vehicles.length > 0;
 
@@ -101,7 +100,7 @@ export default function GaragePage() {
                 position: "relative",
               }}
             >
-              <SceneHotspots positions={positions} vehicles={vehicles} positionIds={positionIds} />
+              <SceneHotspots hotspots={hotspots} vehicles={vehicles} />
             </div>
             <img
               src={activeScene!.backgroundUrl}

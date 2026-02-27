@@ -210,6 +210,11 @@ export async function deleteScene(id: string): Promise<void> {
   return fetchApi<void>(`/scenes/${id}`, { method: 'DELETE' });
 }
 
+/** Duplicar escena (nombre "Copia de ...", mismo fondo y hotspots) */
+export async function duplicateScene(id: string): Promise<ApiScene> {
+  return fetchApi<ApiScene>(`/scenes/${id}/duplicate`, { method: 'POST' });
+}
+
 // Tipos de la API
 export interface ApiVehicle {
   id: string;
@@ -282,11 +287,22 @@ export interface ApiTestDrive {
   updatedAt: string;
 }
 
+export interface ApiHotspot {
+  id: string;
+  vehicleId: string;
+  x: number;
+  y: number;
+  createdAt?: string;
+}
+
 export interface ApiScene {
   id: string;
   name: string;
   backgroundUrl: string;
-  positions: Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }>;
+  /** Lista de hotspots (el backend siempre devuelve esto) */
+  hotspots?: ApiHotspot[];
+  /** @deprecated Legacy */
+  positions?: Record<string, { vehicleId: string | null; transform: { x: number; y: number; scale: number; rotation: number }; updatedAt: string }>;
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -296,8 +312,9 @@ export interface ApiScene {
 export interface ApiSceneCreate {
   name: string;
   backgroundUrl?: string;
+  hotspots?: ApiHotspot[];
   positions?: Record<string, unknown>;
   isActive?: boolean;
 }
 
-export type ApiSceneUpdate = Partial<ApiSceneCreate>;
+export type ApiSceneUpdate = Partial<Omit<ApiSceneCreate, 'name'>> & { name?: string };

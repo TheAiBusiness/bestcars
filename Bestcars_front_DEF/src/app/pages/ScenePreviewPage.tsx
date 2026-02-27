@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { api, getVehicleImageUrl, type Scene, type ScenePosition } from "../../services/api.js";
+import { api, type Scene, sceneHotspots } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import SceneHotspots from "../components/SceneHotspots";
 
@@ -57,10 +57,14 @@ export default function ScenePreviewPage() {
       const data = event.data;
       if (!data || data.type !== "BESTCARS_SCENE_EDITOR_STATE") return;
 
-      const { scene } = data.payload ?? {};
+      const { scene, vehicles: payloadVehicles } = data.payload ?? {};
       if (scene) {
         setLoading(false);
-        renderScene(scene as Scene);
+        if (Array.isArray(payloadVehicles) && payloadVehicles.length > 0) {
+          setState({ scene: scene as Scene, vehicles: payloadVehicles as Vehicle[] });
+        } else {
+          renderScene(scene as Scene);
+        }
       }
     };
 
@@ -82,7 +86,7 @@ export default function ScenePreviewPage() {
   }
 
   const { scene, vehicles } = state;
-  const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
+  const hotspots = sceneHotspots(scene);
 
   if (!scene || !scene.backgroundUrl) {
     return (
@@ -91,9 +95,6 @@ export default function ScenePreviewPage() {
       </div>
     );
   }
-
-  const positions = (scene.positions ?? {}) as Record<string, ScenePosition>;
-  const positionIds = ["parking-1", "parking-2", "parking-3", "rampa", "parking-4"];
 
   return (
     <div
@@ -104,36 +105,7 @@ export default function ScenePreviewPage() {
         backgroundPosition: "center",
       }}
     >
-      {/* Los coches siguen dibujándose como en el editor, pero sin bloquear los hotspots */}
-      {positionIds.map((posId) => {
-        const slot = positions[posId];
-        if (!slot?.vehicleId) return null;
-
-        const vehicle = vehicleMap.get(slot.vehicleId);
-        if (!vehicle) return null;
-
-        const imgSrc = vehicle.images?.[0] ? getVehicleImageUrl(vehicle.images[0]) : "";
-        const t = slot.transform ?? { x: 0, y: 0, scale: 1, rotation: 0 };
-
-        return (
-          <div
-            key={posId}
-            className="absolute left-1/2 top-1/2 select-none pointer-events-none"
-            style={{
-              transform: `translate(-50%, -50%) translate(${t.x}px, ${t.y}px) rotate(${t.rotation}deg) scale(${t.scale})`,
-            }}
-          >
-            <img
-              src={imgSrc}
-              alt={vehicle.title}
-              className="w-[min(360px,60vw)] h-auto rounded-xl border border-white/10 shadow-2xl"
-            />
-          </div>
-        );
-      })}
-
-      {/* Hotspots clicables sobre los coches */}
-      <SceneHotspots positions={positions} vehicles={vehicles} positionIds={positionIds} />
+      <SceneHotspots hotspots={hotspots} vehicles={vehicles} />
     </div>
   );
 }

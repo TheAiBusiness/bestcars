@@ -1,34 +1,17 @@
-export type PositionId =
-  | "parking-1"
-  | "parking-2"
-  | "parking-3"
-  | "rampa"
-  | "parking-4";
-
-export type Transform = {
-  /**
-   * Desplazamiento en px relativo al centro del lienzo.
-   * (0,0) = centrado.
-   */
+/** Un hotspot: punto clicable en la escena asociado a un vehículo. x,y en px respecto al centro. */
+export type Hotspot = {
+  id: string;
+  vehicleId: string;
   x: number;
   y: number;
-  /** 1 = 100% */
-  scale: number;
-  /** Grados */
-  rotation: number;
-};
-
-export type SceneSlot = {
-  vehicleId: string | null;
-  transform: Transform;
-  updatedAt: string;
+  createdAt?: string;
 };
 
 export type Scene = {
   id: string;
   name: string;
   backgroundUrl: string;
-  positions: Record<PositionId, SceneSlot>;
+  hotspots: Hotspot[];
   createdAt: string;
   updatedAt: string;
 };
@@ -36,53 +19,28 @@ export type Scene = {
 export type SceneEditorStorage = {
   scenes: Scene[];
   activeSceneId: string;
-  activePositionId: PositionId;
+  /** ID del hotspot seleccionado en el editor (null = ninguno) */
+  activeHotspotId: string | null;
   previewUrl: string;
-  /** ID de la escena que está proyectada en la web (bloqueada / visible para el usuario) */
+  /** ID de la escena proyectada en la web (bloqueada) */
   webActiveSceneId: string | null;
 };
 
-export const POSITION_ORDER: PositionId[] = [
-  "parking-1",
-  "parking-2",
-  "parking-3",
-  "rampa",
-  "parking-4",
-];
-
-export const POSITION_LABEL: Record<PositionId, string> = {
-  "parking-1": "Parking 1",
-  "parking-2": "Parking 2",
-  "parking-3": "Parking 3",
-  rampa: "Rampa",
-  "parking-4": "Parking 4",
-};
-
-export function createEmptySlot(): SceneSlot {
-  const now = new Date().toISOString();
-  return {
-    vehicleId: null,
-    transform: { x: 0, y: 0, scale: 1, rotation: 0 },
-    updatedAt: now,
-  };
+export function generateHotspotId(): string {
+  return `hs_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
 export function createEmptyScene(params: {
   name: string;
   backgroundUrl: string;
+  hotspots?: Hotspot[];
 }): Scene {
   const now = new Date().toISOString();
   return {
     id: `scene_${Date.now()}`,
     name: params.name,
     backgroundUrl: params.backgroundUrl,
-    positions: {
-      "parking-1": createEmptySlot(),
-      "parking-2": createEmptySlot(),
-      "parking-3": createEmptySlot(),
-      rampa: createEmptySlot(),
-      "parking-4": createEmptySlot(),
-    },
+    hotspots: params.hotspots ?? [],
     createdAt: now,
     updatedAt: now,
   };

@@ -1,6 +1,6 @@
 /**
  * Controlador de escenas (editor del panel).
- * Persiste en PostgreSQL si DATABASE_URL está configurada; si no, usa memoria.
+ * Modelo: hotspots ilimitados. positions en DB es JSON: array de Hotspot (o legacy object se normaliza).
  */
 
 import { type Request, type Response } from 'express';
@@ -8,26 +8,60 @@ import { prisma } from '../config/database.js';
 
 const useDatabase = Boolean(process.env.DATABASE_URL);
 
-interface ScenePosition {
-  vehicleId: string | null;
-  transform: { x: number; y: number; scale: number; rotation: number };
-  updatedAt: string;
+/** Hotspot: un coche colocado en la escena (x,y en px respecto al centro) */
+export interface Hotspot {
+  id: string;
+  vehicleId: string;
+  x: number;
+  y: number;
+  createdAt?: string;
 }
 
-const defaultPositions: Record<string, ScenePosition> = {
-  'parking-1': { vehicleId: null, transform: { x: 0, y: 0, scale: 1, rotation: 0 }, updatedAt: new Date().toISOString() },
-  'parking-2': { vehicleId: null, transform: { x: 0, y: 0, scale: 1, rotation: 0 }, updatedAt: new Date().toISOString() },
-  'parking-3': { vehicleId: null, transform: { x: 0, y: 0, scale: 1, rotation: 0 }, updatedAt: new Date().toISOString() },
-  rampa: { vehicleId: null, transform: { x: 0, y: 0, scale: 1, rotation: 0 }, updatedAt: new Date().toISOString() },
-  'parking-4': { vehicleId: null, transform: { x: 0, y: 0, scale: 1, rotation: 0 }, updatedAt: new Date().toISOString() },
-};
+/** Convierte positions (legacy object o array) a array de hotspots para la API */
+function normalizePositionsToHotspots(raw: unknown): Hotspot[] {
+  if (Array.isArray(raw)) {
+    return (raw as Hotspot[]).filter(
+      (h) => h && typeof h.id === 'string' && typeof h.vehicleId === 'string' && typeof h.x === 'number' && typeof h.y === 'number'
+    );
+  }
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    const obj = raw as Record<string, { vehicleId?: string | null; transform?: { x?: number; y?: number }; updatedAt?: string }>;
+    const out: Hotspot[] = [];
+    for (const [slotId, slot] of Object.entries(obj)) {
+      if (!slot || !slot.vehicleId) continue;
+      const t = slot.transform ?? { x: 0, y: 0 };
+      out.push({
+        id: slotId,
+        vehicleId: slot.vehicleId,
+        x: Number(t.x) || 0,
+        y: Number(t.y) || 0,
+        createdAt: slot.updatedAt,
+      });
+    }
+    return out;
+  }
+  return [];
+}
+
+/** Acepta body con hotspots[] (nuevo) o positions (legacy); devuelve array para guardar en positions */
+function normalizePayloadToHotspots(body: Record<string, unknown>): Hotspot[] {
+  if (Array.isArray(body.hotspots)) {
+    return (body.hotspots as Hotspot[]).filter(
+      (h) => h && typeof h.id === 'string' && typeof h.vehicleId === 'string' && typeof h.x === 'number' && typeof h.y === 'number'
+    );
+  }
+  if (body.positions && typeof body.positions === 'object')
+    return normalizePositionsToHotspots(body.positions);
+  return [];
+}
 
 function sceneToJson(s: { id: string; name: string; backgroundUrl: string; positions: unknown; isActive: boolean; order: number; createdAt: Date; updatedAt: Date }) {
+  const hotspots = normalizePositionsToHotspots(s.positions);
   return {
     id: s.id,
     name: s.name,
     backgroundUrl: s.backgroundUrl,
-    positions: (s.positions as Record<string, ScenePosition>) ?? defaultPositions,
+    hotspots,
     isActive: s.isActive,
     order: s.order,
     createdAt: s.createdAt.toISOString(),
@@ -40,7 +74,7 @@ interface InMemoryScene {
   id: string;
   name: string;
   backgroundUrl: string;
-  positions: Record<string, ScenePosition>;
+  positions: Hotspot[];
   isActive: boolean;
   order: number;
   createdAt: string;
@@ -66,7 +100,7 @@ export const getAllScenes = async (_req: Request, res: Response): Promise<void> 
       return;
     }
     const ordered = [...inMemoryScenes].sort((a, b) => a.order - b.order);
-    res.json(ordered);
+    res.json(ordered.map(inMemorySceneToJson));
   } catch (error) {
     console.error('[sceneController] Error fetching scenes:', error);
     res.status(500).json({
@@ -90,7 +124,7 @@ export const getActiveScene = async (_req: Request, res: Response): Promise<void
     const scene = activeSceneId
       ? inMemoryScenes.find((s) => s.id === activeSceneId)
       : inMemoryScenes.find((s) => s.isActive);
-    res.json(scene ?? null);
+    res.json(scene ? inMemorySceneToJson(scene) : null);
   } catch (error) {
     console.error('[sceneController] Error fetching active scene:', error);
     res.status(500).json({
@@ -129,7 +163,7 @@ export const getSceneById = async (req: Request, res: Response): Promise<void> =
       });
       return;
     }
-    res.json(scene);
+    res.json(inMemorySceneToJson(scene));
   } catch (error) {
     console.error('[sceneController] Error fetching scene:', error);
     res.status(500).json({
@@ -141,12 +175,26 @@ export const getSceneById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+function inMemorySceneToJson(s: InMemoryScene) {
+  return {
+    id: s.id,
+    name: s.name,
+    backgroundUrl: s.backgroundUrl,
+    hotspots: s.positions,
+    isActive: s.isActive,
+    order: s.order,
+    createdAt: s.createdAt,
+    updatedAt: s.updatedAt,
+  };
+}
+
 export const createScene = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, backgroundUrl, positions, isActive } = req.body ?? {};
-    const nameStr = String(name ?? 'Escena').trim() || 'Escena';
-    const bgUrl = String(backgroundUrl ?? '');
-    const pos = typeof positions === 'object' && positions !== null ? { ...defaultPositions, ...positions } : { ...defaultPositions };
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const nameStr = String(body.name ?? 'Escena').trim() || 'Escena';
+    const bgUrl = String(body.backgroundUrl ?? '');
+    const hotspots = normalizePayloadToHotspots(body);
+    const isActive = Boolean(body.isActive);
 
     if (useDatabase) {
       if (isActive) {
@@ -157,8 +205,8 @@ export const createScene = async (req: Request, res: Response): Promise<void> =>
         data: {
           name: nameStr,
           backgroundUrl: bgUrl,
-          positions: pos as object,
-          isActive: Boolean(isActive),
+          positions: hotspots as unknown as object,
+          isActive,
           order: count,
         },
       });
@@ -170,8 +218,8 @@ export const createScene = async (req: Request, res: Response): Promise<void> =>
       id: nextId(),
       name: nameStr,
       backgroundUrl: bgUrl,
-      positions: pos,
-      isActive: Boolean(isActive),
+      positions: hotspots,
+      isActive,
       order: inMemoryScenes.length,
       createdAt: nowIso(),
       updatedAt: nowIso(),
@@ -181,7 +229,7 @@ export const createScene = async (req: Request, res: Response): Promise<void> =>
       inMemoryScenes.forEach((s) => (s.isActive = s.id === scene.id));
       activeSceneId = scene.id;
     }
-    res.status(201).json(scene);
+    res.status(201).json(inMemorySceneToJson(scene));
   } catch (error) {
     console.error('[sceneController] Error creating scene:', error);
     res.status(500).json({
@@ -196,16 +244,18 @@ export const createScene = async (req: Request, res: Response): Promise<void> =>
 export const updateScene = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, backgroundUrl, positions, isActive } = req.body ?? {};
+    const body = (req.body ?? {}) as Record<string, unknown>;
 
     if (useDatabase) {
       const updateData: { name?: string; backgroundUrl?: string; positions?: object; isActive?: boolean } = {};
-      if (name !== undefined) updateData.name = String(name).trim();
-      if (backgroundUrl !== undefined) updateData.backgroundUrl = String(backgroundUrl);
-      if (positions !== undefined && typeof positions === 'object') updateData.positions = positions as object;
-      if (isActive !== undefined) {
-        updateData.isActive = Boolean(isActive);
-        if (isActive) await prisma.scene.updateMany({ data: { isActive: false } });
+      if (body.name !== undefined) updateData.name = String(body.name).trim();
+      if (body.backgroundUrl !== undefined) updateData.backgroundUrl = String(body.backgroundUrl);
+      const payloadHotspots = normalizePayloadToHotspots(body);
+      if (payloadHotspots.length >= 0 && (body.hotspots !== undefined || body.positions !== undefined))
+        updateData.positions = payloadHotspots as unknown as object;
+      if (body.isActive !== undefined) {
+        updateData.isActive = Boolean(body.isActive);
+        if (updateData.isActive) await prisma.scene.updateMany({ data: { isActive: false } });
       }
       const scene = await prisma.scene.update({
         where: { id },
@@ -228,10 +278,10 @@ export const updateScene = async (req: Request, res: Response): Promise<void> =>
     const prev = inMemoryScenes[index];
     const updated: InMemoryScene = {
       ...prev,
-      ...(name !== undefined && { name: String(name).trim() || prev.name }),
-      ...(backgroundUrl !== undefined && { backgroundUrl: String(backgroundUrl) }),
-      ...(positions !== undefined && typeof positions === 'object' && { positions: { ...prev.positions, ...positions } }),
-      ...(isActive !== undefined && { isActive: Boolean(isActive) }),
+      ...(body.name !== undefined && { name: String(body.name).trim() || prev.name }),
+      ...(body.backgroundUrl !== undefined && { backgroundUrl: String(body.backgroundUrl) }),
+      ...((body.hotspots !== undefined || body.positions !== undefined) && { positions: normalizePayloadToHotspots(body) }),
+      ...(body.isActive !== undefined && { isActive: Boolean(body.isActive) }),
       updatedAt: nowIso(),
     };
     inMemoryScenes[index] = updated;
@@ -239,7 +289,7 @@ export const updateScene = async (req: Request, res: Response): Promise<void> =>
       inMemoryScenes.forEach((s) => (s.isActive = s.id === id));
       activeSceneId = id;
     }
-    res.json(updated);
+    res.json(inMemorySceneToJson(updated));
   } catch (error) {
     console.error('[sceneController] Error updating scene:', error);
     res.status(500).json({
@@ -284,7 +334,7 @@ export const setActiveScene = async (req: Request, res: Response): Promise<void>
       if (s.id === id) s.updatedAt = nowIso();
     });
     activeSceneId = id;
-    res.json(inMemoryScenes[index]);
+    res.json(inMemorySceneToJson(inMemoryScenes[index]));
   } catch (error) {
     console.error('[sceneController] Error setting active scene:', error);
     res.status(500).json({
@@ -293,6 +343,56 @@ export const setActiveScene = async (req: Request, res: Response): Promise<void>
         code: 'INTERNAL_ERROR',
       },
     });
+  }
+};
+
+/** Duplicar escena: nueva con mismo fondo y hotspots, nombre "Copia de ..." */
+export const duplicateScene = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (useDatabase) {
+      const source = await prisma.scene.findUnique({ where: { id } });
+      if (!source) {
+        res.status(404).json({ error: { message: 'Scene not found', code: 'NOT_FOUND' } });
+        return;
+      }
+      const hotspots = normalizePositionsToHotspots(source.positions);
+      const count = await prisma.scene.count();
+      const scene = await prisma.scene.create({
+        data: {
+          name: `Copia de ${source.name}`,
+          backgroundUrl: source.backgroundUrl,
+          positions: hotspots as unknown as object,
+          isActive: false,
+          order: count,
+        },
+      });
+      res.status(201).json(sceneToJson(scene));
+      return;
+    }
+
+    const idx = inMemoryScenes.findIndex((s) => s.id === id);
+    if (idx === -1) {
+      res.status(404).json({ error: { message: 'Scene not found', code: 'NOT_FOUND' } });
+      return;
+    }
+    const source = inMemoryScenes[idx];
+    const newScene: InMemoryScene = {
+      id: nextId(),
+      name: `Copia de ${source.name}`,
+      backgroundUrl: source.backgroundUrl,
+      positions: source.positions.map((h) => ({ ...h, id: `hotspot_${Date.now()}_${Math.random().toString(36).slice(2, 9)}` })),
+      isActive: false,
+      order: inMemoryScenes.length,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+    inMemoryScenes.push(newScene);
+    res.status(201).json(inMemorySceneToJson(newScene));
+  } catch (error) {
+    console.error('[sceneController] Error duplicating scene:', error);
+    res.status(500).json({ error: { message: 'Failed to duplicate scene', code: 'INTERNAL_ERROR' } });
   }
 };
 
