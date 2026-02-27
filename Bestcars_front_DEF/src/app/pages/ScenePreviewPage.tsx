@@ -86,7 +86,9 @@ export default function ScenePreviewPage() {
   }
 
   const { scene, vehicles } = state;
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const hotspots = sceneHotspots(scene);
+  const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
 
   if (!scene || !scene.backgroundUrl) {
     return (
@@ -105,7 +107,7 @@ export default function ScenePreviewPage() {
         backgroundPosition: "center",
       }}
     >
-      <SceneHotspots hotspots={hotspots} vehicles={vehicles} />
+      <SceneHotspots hotspots={safeHotspots} vehicles={safeVehicles} />
     </div>
   );
 }

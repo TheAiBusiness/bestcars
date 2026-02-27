@@ -9,12 +9,14 @@ interface SceneHotspotsProps {
   vehicles: Vehicle[];
 }
 
-export default function SceneHotspots({ hotspots, vehicles }: SceneHotspotsProps) {
-  const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
+export default function SceneHotspots({ hotspots = [], vehicles = [] }: SceneHotspotsProps) {
+  const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  const vehicleMap = new Map(safeVehicles.map((v) => [v.id, v]));
 
   return (
     <>
-      {hotspots.map((h) => {
+      {safeHotspots.map((h) => {
         const vehicle = vehicleMap.get(h.vehicleId);
         if (!vehicle) return null;
         return (

@@ -40,7 +40,7 @@ export default function GaragePage() {
           setScenes(list);
           if (active?.id) setActiveSceneId(active.id);
         }
-        setVehicles(vList);
+        setVehicles(Array.isArray(vList) ? vList : []);
       })
       .catch(() => {});
   }, []);
@@ -75,10 +75,12 @@ export default function GaragePage() {
     setIsStockMenuOpen(currentSceneIndex === 0);
   }, [scenes.length, currentSceneIndex]);
 
-  const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  const vehicleMap = new Map(safeVehicles.map((v) => [v.id, v]));
   const hotspots = sceneHotspots(activeScene);
+  const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
 
-  const showScene = activeScene?.backgroundUrl && vehicles.length > 0;
+  const showScene = activeScene?.backgroundUrl && safeVehicles.length > 0;
 
   useEffect(() => {
     if (showScene) setGarageImageLoaded(true);
@@ -100,7 +102,7 @@ export default function GaragePage() {
                 position: "relative",
               }}
             >
-              <SceneHotspots hotspots={hotspots} vehicles={vehicles} />
+              <SceneHotspots hotspots={safeHotspots} vehicles={safeVehicles} />
             </div>
             <img
               src={activeScene!.backgroundUrl}
