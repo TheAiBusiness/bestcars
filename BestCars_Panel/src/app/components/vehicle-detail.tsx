@@ -301,7 +301,7 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
               {onDelete && (
                 <button
                   onClick={() => {
@@ -309,7 +309,7 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
                       void onDelete(vehicle.id);
                     }
                   }}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/40 hover:bg-red-500/30 text-red-200 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/40 hover:bg-red-500/30 text-red-200 transition-colors whitespace-nowrap"
                   title="Eliminar vehículo"
                 >
                   <Trash2 className="w-4 h-4" />

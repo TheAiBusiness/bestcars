@@ -115,7 +115,10 @@ export function SpecificationsSection({ specifications }: SpecificationsSectionP
               <div className="text-white/50 font-medium text-xs mb-0.5">
                 {spec.key}
               </div>
-              <div className="font-bold text-sm text-white truncate">
+              <div
+                className="font-bold text-sm text-white line-clamp-2 break-words"
+                title={spec.value}
+              >
                 {spec.value}
               </div>
             </div>

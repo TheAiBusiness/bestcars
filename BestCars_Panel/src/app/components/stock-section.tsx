@@ -81,6 +81,9 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
     }
   }, [editedPrice, onPriceUpdate, vehicle.id]);
 
+  const mainTitle = `${vehicle.brand} ${vehicle.model}`.trim();
+  const subtitle = vehicle.description || vehicle.name;
+
   return (
     <motion.div
       ref={(node) => {
@@ -135,9 +138,24 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
 
         {/* Content */}
         <div className="p-5">
-          {/* Title */}
-          <h3 className="text-lg text-white/90 mb-1">{vehicle.name}</h3>
-          <p className="text-sm text-white/50 mb-4">{vehicle.year} • {vehicle.specs.kilometros.toLocaleString()} km</p>
+          {/* Title + subtitle */}
+          <h3
+            className="text-base md:text-lg text-white/90 mb-1 font-semibold truncate"
+            title={mainTitle}
+          >
+            {mainTitle}
+          </h3>
+          {subtitle && (
+            <p
+              className="text-xs text-white/60 mb-2 line-clamp-2 break-words"
+              title={subtitle}
+            >
+              {subtitle}
+            </p>
+          )}
+          <p className="text-xs text-white/40 mb-4">
+            {vehicle.year} • {vehicle.specs.kilometros.toLocaleString()} km
+          </p>
 
           {/* Price */}
           <div className="flex items-center justify-between mb-4">
