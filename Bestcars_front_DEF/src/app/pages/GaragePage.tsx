@@ -68,9 +68,12 @@ export default function GaragePage() {
     }
   }, [garageImageLoaded, activeScene]);
 
+  // Solo abrir el listado de coches por defecto en la primera escena; en el resto empezar cerrado
   useEffect(() => {
-    setIsStockMenuOpen(true);
-  }, []);
+    if (scenes.length === 0) return;
+    const idx = sceneIndexFromUrl !== null ? Math.min(sceneIndexFromUrl, scenes.length - 1) : 0;
+    setIsStockMenuOpen(idx === 0);
+  }, [scenes.length, sceneIndexFromUrl]);
 
   const vehicleMap = new Map(vehicles.map((v) => [v.id, v]));
   const positions = (activeScene?.positions ?? {}) as Record<string, ScenePosition>;
@@ -217,7 +220,22 @@ export default function GaragePage() {
           </button>
         </div>
       )}
-      <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} hideButton={true} disableClose={true} />
+      {!isStockMenuOpen && (
+        <button
+          type="button"
+          onClick={() => setIsStockMenuOpen(true)}
+          className="fixed top-6 left-6 px-6 py-3 border border-white text-white bg-transparent rounded-sm transition-all duration-200 hover:bg-white/10 z-50"
+          style={{
+            fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+            fontSize: '15px',
+            fontWeight: 500,
+            letterSpacing: '0.3px',
+          }}
+        >
+          Nuestro Stock
+        </button>
+      )}
+      <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} hideButton={true} disableClose={false} />
     </div>
   );
 }

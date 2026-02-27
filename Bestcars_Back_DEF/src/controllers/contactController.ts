@@ -225,3 +225,35 @@ export const updateContact = async (req: Request, res: Response): Promise<void> 
     res.status(500).json({ error: 'Failed to update contact' });
   }
 };
+
+/**
+ * DELETE /api/contact/:id - Eliminar lead (contacto). Requiere auth.
+ */
+export const deleteContact = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      res.status(400).json({ error: 'Invalid contact id' });
+      return;
+    }
+    if (useDatabase) {
+      await prisma.contactSubmission.delete({ where: { id } });
+      res.status(204).send();
+      return;
+    }
+    const index = inMemoryContacts.findIndex((c) => c.id === id);
+    if (index === -1) {
+      res.status(404).json({ error: 'Contact not found' });
+      return;
+    }
+    inMemoryContacts.splice(index, 1);
+    res.status(204).send();
+  } catch (error) {
+    console.error('[contactController] Error deleting contact:', error);
+    if ((error as { code?: string }).code === 'P2025') {
+      res.status(404).json({ error: 'Contact not found' });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to delete contact' });
+  }
+};

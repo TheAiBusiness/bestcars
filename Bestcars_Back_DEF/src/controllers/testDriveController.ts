@@ -190,3 +190,29 @@ export const updateTestDrive = async (req: Request, res: Response): Promise<void
     res.status(500).json({ error: 'Failed to update test drive' });
   }
 };
+
+/**
+ * DELETE /api/test-drive/:id - Eliminar lead (solicitud prueba de manejo). Requiere auth.
+ */
+export const deleteTestDrive = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (Number.isNaN(id)) {
+      res.status(400).json({ error: 'Invalid test drive id' });
+      return;
+    }
+    if (!useDatabase) {
+      res.status(501).json({ error: 'Delete test drive requires DATABASE_URL' });
+      return;
+    }
+    await prisma.testDriveSubmission.delete({ where: { id } });
+    res.status(204).send();
+  } catch (error) {
+    console.error('[testDriveController] Error deleting test drive:', error);
+    if ((error as { code?: string }).code === 'P2025') {
+      res.status(404).json({ error: 'Test drive not found' });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to delete test drive' });
+  }
+};

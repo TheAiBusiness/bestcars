@@ -149,6 +149,11 @@ export async function updateContact(id: number, body: { status?: string; notes?:
   });
 }
 
+/** Eliminar contacto (lead) */
+export async function deleteContact(id: number): Promise<void> {
+  return fetchApi<void>(`/contact/${id}`, { method: 'DELETE' });
+}
+
 /** Obtener solicitudes de prueba de manejo */
 export async function getTestDrives(): Promise<ApiTestDrive[]> {
   return fetchApi<ApiTestDrive[]>('/test-drive');
@@ -160,6 +165,11 @@ export async function updateTestDrive(id: number, body: { status?: string; notes
     method: 'PATCH',
     body: JSON.stringify(body),
   });
+}
+
+/** Eliminar solicitud de prueba de manejo (lead) */
+export async function deleteTestDrive(id: number): Promise<void> {
+  return fetchApi<void>(`/test-drive/${id}`, { method: 'DELETE' });
 }
 
 /** Obtener todas las escenas */

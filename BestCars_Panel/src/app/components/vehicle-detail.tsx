@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { toast } from 'sonner';
 import { X, Pencil, Save, Calendar, TrendingDown, TrendingUp, Video, Play, Eye, Trash2, Plus } from 'lucide-react';
 import { Vehicle } from '../data/mock-data';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -185,7 +186,12 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
   };
 
   const handleSaveTags = () => {
-    onUpdate(vehicle.id, { tags: tags.filter(Boolean) });
+    const valid = tags.map((t) => String(t).trim()).filter(Boolean);
+    if (tags.length > 0 && valid.length === 0) {
+      toast.error("No se pueden guardar etiquetas vacías. Añade al menos una con texto.");
+      return;
+    }
+    onUpdate(vehicle.id, { tags: valid });
   };
 
   const addTag = () => setTags((t) => [...t, '']);

@@ -36,6 +36,7 @@ interface VehicleCreateBody {
   images?: string[];
   tags?: string[];
   specifications?: Record<string, { key: string; value: string }[]>;
+  status?: string;
 }
 
 function generateVehicleId(): string {
@@ -57,11 +58,13 @@ function formatVehicle(
     images: string[];
     tags: string[];
     specifications: unknown;
+    status?: string;
     createdAt: Date;
     updatedAt: Date;
   },
   enrichment?: { leads?: number; views?: number; clicks?: number; status?: string; priority?: number }
 ) {
+  const status = (vehicle as { status?: string }).status ?? enrichment?.status ?? 'available';
   return {
     ...vehicle,
     priceSubtext: vehicle.priceSubtext ?? undefined,
@@ -74,7 +77,7 @@ function formatVehicle(
     leads: enrichment?.leads ?? 0,
     views: enrichment?.views ?? 0,
     clicks: enrichment?.clicks ?? 0,
-    status: enrichment?.status ?? 'available',
+    status,
     priority: enrichment?.priority ?? 0,
   };
 }
@@ -115,9 +118,10 @@ export const getAllVehicles = async (_req: Request, res: Response): Promise<void
         prisma.vehicle.findMany({ orderBy: { createdAt: 'desc' } }),
         getLeadCountsByVehicleId(),
       ]);
-      const vWithStats = (v: { id: string; views?: number; clicks?: number }) => ({
+      const vWithStats = (v: { id: string; views?: number; clicks?: number; status?: string }) => ({
         views: (v as { views?: number }).views ?? 0,
         clicks: (v as { clicks?: number }).clicks ?? 0,
+        status: (v as { status?: string }).status ?? 'available',
       });
       res.json(
         vehicles.map((v, i) =>
@@ -125,7 +129,7 @@ export const getAllVehicles = async (_req: Request, res: Response): Promise<void
             leads: leadCounts[v.id] ?? 0,
             views: vWithStats(v).views,
             clicks: vWithStats(v).clicks,
-            status: 'available',
+            status: vWithStats(v).status,
             priority: i + 1,
           })
         )
@@ -135,6 +139,7 @@ export const getAllVehicles = async (_req: Request, res: Response): Promise<void
     res.json(
       getInMemoryVehicles().map((v) => ({
         ...v,
+        status: v.status ?? 'available',
         createdAt: v.createdAt.toISOString(),
         updatedAt: v.updatedAt.toISOString(),
       }))
@@ -209,12 +214,13 @@ export const getVehicleById = async (req: Request, res: Response): Promise<void>
       ]);
       const views = (vehicle as { views?: number }).views ?? 0;
       const clicks = (vehicle as { clicks?: number }).clicks ?? 0;
+      const status = (vehicle as { status?: string }).status ?? 'available';
       res.json(
         formatVehicle(vehicle, {
           leads: contactCount + testDriveCount,
           views,
           clicks,
-          status: 'available',
+          status,
           priority: 0,
         })
       );
@@ -228,6 +234,7 @@ export const getVehicleById = async (req: Request, res: Response): Promise<void>
     }
     res.json({
       ...vehicle,
+      status: vehicle.status ?? 'available',
       createdAt: vehicle.createdAt.toISOString(),
       updatedAt: vehicle.updatedAt.toISOString(),
     });
@@ -273,6 +280,7 @@ export const createVehicle = async (
       images: Array.isArray(body.images) ? body.images : [],
       tags: Array.isArray(body.tags) ? body.tags : [],
       specifications: (body.specifications as unknown as MockVehicle['specifications']) ?? { general: [], motor: [], seguridad: [], tecnologia: [] },
+      status: (body.status as string)?.trim() || 'available',
       createdAt: now,
       updatedAt: now,
     };
@@ -300,6 +308,7 @@ export const createVehicle = async (
         images: Array.isArray(body.images) ? body.images : [],
         tags: Array.isArray(body.tags) ? body.tags : [],
         specifications: body.specifications ?? undefined,
+        status: (body.status as string)?.trim() || 'available',
       },
     });
     res.status(201).json(formatVehicle(vehicle));
@@ -330,6 +339,7 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
   if (body.images !== undefined) data.images = Array.isArray(body.images) ? body.images : [];
   if (body.tags !== undefined) data.tags = Array.isArray(body.tags) ? body.tags : [];
   if (body.specifications !== undefined) data.specifications = body.specifications as MockVehicle['specifications'];
+  if (body.status !== undefined) data.status = String(body.status).trim() || 'available';
 
   if (!useDatabase) {
     const list = getInMemoryVehicles();
@@ -363,6 +373,7 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
       ...(data.images !== undefined && { images: data.images }),
       ...(data.tags !== undefined && { tags: data.tags }),
       ...(data.specifications !== undefined && { specifications: data.specifications as unknown as Prisma.InputJsonValue }),
+      ...(data.status !== undefined && { status: data.status }),
     } as Prisma.VehicleUpdateInput;
     const vehicle = await prisma.vehicle.update({
       where: { id },

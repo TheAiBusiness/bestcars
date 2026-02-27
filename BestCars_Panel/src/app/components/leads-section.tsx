@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Mail, Phone, Calendar, User, MessageSquare, Inbox } from 'lucide-react';
+import { Mail, Phone, Calendar, User, MessageSquare, Inbox, Trash2 } from 'lucide-react';
 import { Lead, Vehicle } from '../data/mock-data';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -12,9 +12,10 @@ interface LeadsSectionProps {
   leads: Lead[];
   vehicles: Vehicle[];
   onLeadUpdate: (leadId: string, updates: Partial<Lead>) => void;
+  onLeadDelete?: (leadId: string) => void;
 }
 
-export function LeadsSection({ leads, vehicles, onLeadUpdate }: LeadsSectionProps) {
+export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: LeadsSectionProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterOrigin, setFilterOrigin] = useState<string>("all");
 
@@ -256,6 +257,16 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate }: LeadsSectionProp
                       <option value="convertido" className="bg-black">Convertido</option>
                       <option value="perdido" className="bg-black">Perdido</option>
                     </select>
+                    {onLeadDelete && (
+                      <button
+                        type="button"
+                        onClick={() => window.confirm('¿Eliminar este lead?') && onLeadDelete(lead.id)}
+                        className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Eliminar
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

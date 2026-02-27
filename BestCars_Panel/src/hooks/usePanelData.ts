@@ -12,6 +12,8 @@ import {
   deleteVehicle,
   updateContact,
   updateTestDrive,
+  deleteContact,
+  deleteTestDrive,
 } from "../services/api";
 import { apiVehicleToPanel, panelVehicleToApiCreate, panelVehicleToApiUpdate } from "../adapters/vehicleAdapter";
 import { apiContactToLead, apiTestDriveToLead, leadStatusToApi } from "../adapters/leadAdapter";
@@ -160,6 +162,29 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
     [apiMode, isAuthenticated, setLeadsState]
   );
 
+  const handleLeadDelete = useCallback(
+    async (leadId: string) => {
+      const isContact = leadId.startsWith("contact-");
+      const isTestDrive = leadId.startsWith("testdrive-");
+      const id = parseInt(leadId.replace(/\D/g, ""), 10);
+      if (apiMode && isAuthenticated) {
+        try {
+          if (isContact) await deleteContact(id);
+          else if (isTestDrive) await deleteTestDrive(id);
+          else return;
+          setLeadsState((prev) => prev.filter((l) => l.id !== leadId));
+          toast.success("Lead eliminado");
+        } catch (err) {
+          toast.error(err instanceof Error ? err.message : "Error al eliminar");
+        }
+      } else {
+        setLeadsState((prev) => prev.filter((l) => l.id !== leadId));
+        toast.success("Lead eliminado");
+      }
+    },
+    [apiMode, isAuthenticated, setLeadsState]
+  );
+
   const handleSaveNewVehicle = useCallback(
     async (vehicle: Omit<Vehicle, "id" | "createdAt" | "updatedAt" | "priority">) => {
       if (apiMode && isAuthenticated) {
@@ -216,6 +241,7 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
     handleVehicleReorder,
     handlePriceUpdate,
     handleLeadUpdate,
+    handleLeadDelete,
     handleSaveNewVehicle,
     handleVehicleDelete,
   };

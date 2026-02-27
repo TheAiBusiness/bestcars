@@ -10,8 +10,9 @@ function parsePrice(priceStr: string): number {
   return parseFloat(num) || 0;
 }
 
+/** Formato de precio para API: preserva decimales (evita perder ceros al recargar en panel) */
 function formatPrice(price: number): string {
-  return `€${price.toLocaleString('es-ES')}`;
+  return `€${price.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 }
 
 function mapStatusToPanel(status: string | undefined): Vehicle['status'] {

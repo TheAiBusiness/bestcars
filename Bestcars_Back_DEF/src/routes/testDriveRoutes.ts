@@ -6,7 +6,7 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { submitTestDrive, getAllTestDrives, updateTestDrive } from '../controllers/testDriveController.js';
+import { submitTestDrive, getAllTestDrives, updateTestDrive, deleteTestDrive } from '../controllers/testDriveController.js';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -22,5 +22,6 @@ const testDriveFormLimiter = rateLimit({
 router.post('/', testDriveFormLimiter, submitTestDrive);
 router.get('/', requireAuth, getAllTestDrives);
 router.patch('/:id', requireAuth, updateTestDrive);
+router.delete('/:id', requireAuth, deleteTestDrive);
 
 export default router;

@@ -20,6 +20,7 @@ export interface MockVehicle {
   images: string[];
   tags: string[];
   specifications: VehicleSpecifications;
+  status?: string;  // available | reserved | sold
   createdAt: Date;
   updatedAt: Date;
 }

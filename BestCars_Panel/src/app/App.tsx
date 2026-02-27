@@ -33,6 +33,7 @@ export default function App() {
     handleVehicleReorder,
     handlePriceUpdate,
     handleLeadUpdate,
+    handleLeadDelete,
     handleSaveNewVehicle,
     handleVehicleDelete,
   } = usePanelData(apiMode, !!token);
@@ -160,6 +161,7 @@ export default function App() {
               leads={filteredLeads}
               vehicles={vehicles}
               onLeadUpdate={handleLeadUpdate}
+              onLeadDelete={handleLeadDelete}
             />
           )}
           {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
