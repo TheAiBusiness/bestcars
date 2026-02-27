@@ -73,13 +73,16 @@ export function SettingsSection() {
                 className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]"
               />
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm text-white/50 mb-2">Rol</label>
-              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]">
-                <option value="admin" className="bg-black">Administrador</option>
-                <option value="comercial" className="bg-black">Comercial</option>
-                <option value="marketing" className="bg-black">Marketing</option>
+              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] appearance-none pr-10">
+                <option value="admin" className="bg-black text-white">Administrador</option>
+                <option value="comercial" className="bg-black text-white">Comercial</option>
+                <option value="marketing" className="bg-black text-white">Marketing</option>
               </select>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-end pb-3">
+                <span className="text-white/40 text-xs">▾</span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -173,16 +176,16 @@ export function SettingsSection() {
             <h3 className="text-lg text-white">Idioma y Región</h3>
           </div>
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <label className="block text-sm text-white/50 mb-2">Idioma</label>
-              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]">
-                <option value="es" className="bg-black">Español</option>
+              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] appearance-none pr-10">
+                <option value="es" className="bg-black text-white">Español</option>
               </select>
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm text-white/50 mb-2">Zona horaria</label>
-              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]">
-                <option value="europe/madrid" className="bg-black">Europe/Madrid (GMT+1)</option>
+              <select className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] appearance-none pr-10">
+                <option value="europe/madrid" className="bg-black text-white">Europe/Madrid (GMT+1)</option>
               </select>
             </div>
           </div>

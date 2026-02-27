@@ -762,11 +762,11 @@ export function SceneEditorSection({ vehicles, searchQuery = "", apiMode = false
             <select
               value={draftSlot.vehicleId ?? ""}
               onChange={(e) => setVehicleForSlot(e.target.value || null)}
-              className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50"
+              className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-white/80 focus:outline-none focus:border-blue-500/50 appearance-none pr-8"
             >
-              <option value="">(Vacío)</option>
+              <option value="" className="bg-black text-white">(Vacío)</option>
               {filteredVehiclesForPicker.map((v) => (
-                <option key={v.id} value={v.id}>
+                <option key={v.id} value={v.id} className="bg-black text-white">
                   {v.brand} {v.model} - {v.year}
                 </option>
               ))}

@@ -216,11 +216,11 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500/50 appearance-none pr-10"
                   >
-                    <option value="disponible">Disponible</option>
-                    <option value="reservado">Reservado</option>
-                    <option value="vendido">Vendido</option>
+                    <option value="disponible" className="bg-black text-white">Disponible</option>
+                    <option value="reservado" className="bg-black text-white">Reservado</option>
+                    <option value="vendido" className="bg-black text-white">Vendido</option>
                   </select>
                 </div>
               </div>

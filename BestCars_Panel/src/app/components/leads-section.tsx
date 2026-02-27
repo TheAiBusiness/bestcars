@@ -131,31 +131,37 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
 
       {/* Filters */}
       <div className="flex gap-4 mb-6">
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]"
+            className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] appearance-none pr-10"
           >
             {statusOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-black">
+              <option key={option.value} value={option.value} className="bg-black text-white">
                 {option.label}
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <span className="text-white/40 text-xs">▾</span>
+          </div>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <select
             value={filterOrigin}
             onChange={(e) => setFilterOrigin(e.target.value)}
-            className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05]"
+            className="w-full px-4 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white/90 focus:outline-none focus:border-blue-500/50 focus:bg-white/[0.05] appearance-none pr-10"
           >
             {originOptions.map((option) => (
-              <option key={option.value} value={option.value} className="bg-black">
+              <option key={option.value} value={option.value} className="bg-black text-white">
                 {option.label}
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+            <span className="text-white/40 text-xs">▾</span>
+          </div>
         </div>
       </div>
 
@@ -249,13 +255,13 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
                       onChange={(e) =>
                         onLeadUpdate(lead.id, { status: e.target.value as Lead['status'] })
                       }
-                      className="px-3 py-2 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-white/90 focus:outline-none focus:border-blue-500/50"
+                      className="px-3 py-2 bg-white/[0.03] border border-white/10 rounded-xl text-sm text-white/90 focus:outline-none focus:border-blue-500/50 appearance-none pr-8"
                     >
-                      <option value="nuevo" className="bg-black">Nuevo</option>
-                      <option value="contactado" className="bg-black">Contactado</option>
-                      <option value="seguimiento" className="bg-black">Seguimiento</option>
-                      <option value="convertido" className="bg-black">Convertido</option>
-                      <option value="perdido" className="bg-black">Perdido</option>
+                      <option value="nuevo" className="bg-black text-white">Nuevo</option>
+                      <option value="contactado" className="bg-black text-white">Contactado</option>
+                      <option value="seguimiento" className="bg-black text-white">Seguimiento</option>
+                      <option value="convertido" className="bg-black text-white">Convertido</option>
+                      <option value="perdido" className="bg-black text-white">Perdido</option>
                     </select>
                     {onLeadDelete && (
                       <button
