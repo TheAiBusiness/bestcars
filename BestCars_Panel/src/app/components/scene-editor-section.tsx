@@ -85,6 +85,7 @@ export function SceneEditorSection({
 
   const [addHotspotMode, setAddHotspotMode] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [publishLoading, setPublishLoading] = useState(false);
   const [previewConnected, setPreviewConnected] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -354,18 +355,26 @@ export function SceneEditorSection({
   };
 
   const handleSaveAndPublish = async () => {
-    if (!activeScene) return;
-    const result = await persistScene(activeScene, { silentSuccess: true });
-    if (!result.ok) {
-      setIsDirty(true);
-      return;
-    }
-    setIsDirty(false);
-    const finalSceneId = result.sceneId;
-    const activated = await setActiveSceneApi(finalSceneId, { silentSuccess: true });
-    if (activated) {
-      await refreshScenesFromApi();
-      toast.success("Guardado y publicado");
+    if (!activeScene || publishLoading) return;
+    setPublishLoading(true);
+    try {
+      const result = await persistScene(activeScene, { silentSuccess: true });
+      if (!result.ok) {
+        setIsDirty(true);
+        toast.error("No se pudo guardar la escena. Revisa la conexión con el backend.");
+        return;
+      }
+      setIsDirty(false);
+      const finalSceneId = result.sceneId;
+      const activated = await setActiveSceneApi(finalSceneId, { silentSuccess: true });
+      if (activated) {
+        await refreshScenesFromApi();
+        toast.success("Guardado y publicado. La web mostrará esta escena en el garaje.");
+      } else {
+        toast.warning("Escena guardada pero no se pudo activar para la web. Intenta de nuevo.");
+      }
+    } finally {
+      setPublishLoading(false);
     }
   };
 
@@ -631,11 +640,23 @@ export function SceneEditorSection({
                   Añadir hotspot
                 </button>
                 <button
+                  type="button"
                   onClick={handleSaveAndPublish}
-                  className="px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] transition-all text-white/80 text-sm flex items-center gap-2"
+                  disabled={publishLoading || !apiMode || !isAuthenticated}
+                  className="px-3 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 hover:bg-blue-500/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all text-white/90 text-sm flex items-center gap-2 min-w-[180px] justify-center"
+                  title={apiMode && isAuthenticated ? "Guarda la escena en el servidor y la deja visible en /garage" : "Inicia sesión y conecta el backend para guardar"}
                 >
-                  <Save className="w-4 h-4" />
-                  Guardar y publicar
+                  {publishLoading ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Guardando…
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 shrink-0" />
+                      Guardar y publicar
+                    </>
+                  )}
                 </button>
               </div>
             </div>

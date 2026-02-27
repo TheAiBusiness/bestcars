@@ -1,6 +1,6 @@
 .scene-hotspot {
   position: absolute;
-  transform: translate(-50%, -50%);
+  /* transform se aplica inline (posición desde editor); no fijar aquí para no pisar */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,7 +9,7 @@
   pointer-events: all;
   cursor: pointer;
   text-decoration: none;
-  animation: sceneHotspotFadeIn 0.6s ease-out forwards;
+  animation: sceneHotspotFadeIn 0.4s ease-out forwards;
   opacity: 0;
   z-index: 20;
 }
@@ -117,11 +117,9 @@
 @keyframes sceneHotspotFadeIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
   }
 }
 

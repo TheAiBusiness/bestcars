@@ -26,9 +26,13 @@ export default function GaragePage() {
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [activeSceneFromApi, setActiveSceneFromApi] = useState<Scene | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
 
   const loadScenesData = () => {
+    setDataLoading(true);
+    setDataError(false);
     Promise.all([api.getScenes(), api.getActiveScene(), api.getAllVehicles()])
       .then(([sceneList, active, vList]) => {
         const list = Array.isArray(sceneList) ? sceneList : [];
@@ -36,7 +40,8 @@ export default function GaragePage() {
         setActiveSceneFromApi(active ?? null);
         setVehicles(Array.isArray(vList) ? vList : []);
       })
-      .catch(() => {});
+      .catch(() => setDataError(true))
+      .finally(() => setDataLoading(false));
   };
 
   useEffect(() => {
@@ -80,19 +85,42 @@ export default function GaragePage() {
       : garageImage;
   const showScene = !!activeScene;
 
+  // Preload background image para no mostrar contenido hasta que esté lista
   useEffect(() => {
-    if (showScene || activeScene) setGarageImageLoaded(true);
-  }, [showScene, activeScene]);
+    if (!garageBackground) {
+      setGarageImageLoaded(true);
+      return;
+    }
+    setGarageImageLoaded(false);
+    const img = new Image();
+    img.onload = () => setGarageImageLoaded(true);
+    img.onerror = () => setGarageImageLoaded(true);
+    img.src = typeof garageBackground === "string" ? garageBackground : garageImage;
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+      img.src = "";
+    };
+  }, [garageBackground]);
+
+  const showLoader = dataLoading || (!garageImageLoaded && !garageImageError);
 
   return (
     <div className="garage-page" ref={pageRef}>
       <div className="image-wrapper">
-        {!garageImageLoaded && !garageImageError && (
+        {showLoader && (
           <div className="image-loader-overlay">
             <div className="image-loader-content">
-              <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" />
-              <p className="text-white/70 text-sm">Cargando imágenes...</p>
+              <Loader2 className="w-12 h-12 animate-spin text-blue-500 mb-4" aria-hidden />
+              <p className="text-white/70 text-sm">
+                {dataLoading ? "Cargando escena y stock…" : "Cargando imagen…"}
+              </p>
             </div>
+          </div>
+        )}
+        {dataError && !showLoader && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg bg-black/60 text-white/80 text-sm text-center max-w-[90vw]">
+            No se pudo conectar. Comprueba el backend y pulsa &quot;Actualizar escena&quot;.
           </div>
         )}
         <div

@@ -37,7 +37,7 @@ export function createEmptyScene(params: {
 }): Scene {
   const now = new Date().toISOString();
   return {
-    id: `scene_${Date.now()}`,
+    id: `scene_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     name: params.name,
     backgroundUrl: params.backgroundUrl,
     hotspots: params.hotspots ?? [],
