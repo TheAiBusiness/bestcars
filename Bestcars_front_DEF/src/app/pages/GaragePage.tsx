@@ -44,10 +44,10 @@ export default function GaragePage() {
       .catch(() => {});
   }, []);
 
-  const defaultIndex = activeSceneId && scenes.length > 0
-    ? Math.max(0, scenes.findIndex((s) => s.id === activeSceneId))
+  // Sin "scene" en la URL (p. ej. al pulsar "Entrar al garaje") siempre mostrar escena 0, no la escena activa del backend.
+  const currentSceneIndex = sceneIndexFromUrl !== null
+    ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1))
     : 0;
-  const currentSceneIndex = sceneIndexFromUrl !== null ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1)) : defaultIndex;
   const activeScene = scenes[currentSceneIndex] && scenes[currentSceneIndex].backgroundUrl
     ? scenes[currentSceneIndex]
     : scenes[0]?.backgroundUrl
