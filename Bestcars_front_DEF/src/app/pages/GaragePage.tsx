@@ -23,7 +23,7 @@ export default function GaragePage() {
   const [logoImageLoaded, setLogoImageLoaded] = useState(false);
   const [garageImageError, setGarageImageError] = useState(false);
   const [, setLogoImageError] = useState(false);
-  const [isStockMenuOpen, setIsStockMenuOpen] = useState(() => sceneIndexFromUrl === null || sceneIndexFromUrl === 0);
+  const [isStockMenuOpen, setIsStockMenuOpen] = useState(true);
   const [scenes, setScenes] = useState<Scene[]>([]);
   const [activeSceneFromApi, setActiveSceneFromApi] = useState<Scene | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -79,12 +79,6 @@ export default function GaragePage() {
     }
   }, [garageImageLoaded, activeScene]);
 
-  // Solo abrir el listado por defecto en escena 1; en escenas 2+ empezar cerrado. Al cambiar de escena no dejar el modal "pegado".
-  useEffect(() => {
-    if (scenes.length === 0) return;
-    setIsStockMenuOpen(currentSceneIndex === 0);
-  }, [scenes.length, currentSceneIndex]);
-
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const vehicleMap = new Map(safeVehicles.map((v) => [v.id, v]));
   const hotspots = sceneHotspots(activeScene);
@@ -125,6 +119,13 @@ export default function GaragePage() {
         >
           {showScene && (
             <SceneHotspots hotspots={safeHotspots} vehicles={safeVehicles} />
+          )}
+          {!activeScene && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+              <p className="text-white/80 text-sm px-4 text-center">
+                No hay escena publicada. Publica una desde el panel.
+              </p>
+            </div>
           )}
         </div>
         <img
