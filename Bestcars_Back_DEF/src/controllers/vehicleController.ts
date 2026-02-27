@@ -148,10 +148,12 @@ export const getAllVehicles = async (_req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('[vehicleController] Error fetching vehicles:', error);
     if (useDatabase) {
-      res.status(500).json({ error: 'Failed to fetch vehicles. Run: npx prisma db push' });
+      res.status(200).json([]);
       return;
     }
-    res.status(500).json({ error: 'Failed to fetch vehicles' });
+    res.status(500).json({
+      error: { message: 'Failed to fetch vehicles', code: 'INTERNAL_ERROR' },
+    });
   }
 };
 

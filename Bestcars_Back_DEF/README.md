@@ -119,6 +119,11 @@ Rutas con **Auth**: cabecera `Authorization: Bearer <token>` (token de `/api/aut
 
 5. **Health**: Railway puede usar `GET /api/health` o `GET /api/health/ready` para comprobar que el servicio está listo.
 
+6. **Si obtienes 500 en `/api/vehicles` o `/api/scenes`**:
+   - Comprueba que hayas ejecutado **una vez** `npx prisma db push` con la URL **directa** (puerto 5432) de Supabase; sin eso las tablas no existen.
+   - Si usas la URL del **pooler** (puerto 6543) en `DATABASE_URL`, añade al final: `?pgbouncer=true` (ej. `...postgres?pgbouncer=true`) para evitar errores de prepared statements.
+   - Revisa los logs del servicio en Railway; el mensaje de error indicará si es conexión o tablas faltantes.
+
 ---
 
 ## Scripts

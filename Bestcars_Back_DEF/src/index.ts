@@ -4,6 +4,13 @@
  */
 
 import 'dotenv/config';
+
+// Supabase pooler (puerto 6543): Prisma necesita pgbouncer=true para evitar errores de prepared statements
+const dbUrl = process.env.DATABASE_URL;
+if (dbUrl && typeof dbUrl === 'string' && dbUrl.includes(':6543/') && !dbUrl.includes('pgbouncer')) {
+  process.env.DATABASE_URL = dbUrl.includes('?') ? `${dbUrl}&pgbouncer=true` : `${dbUrl}?pgbouncer=true`;
+}
+
 import app from './config/app.js';
 import { prisma } from './config/database.js';
 

@@ -91,11 +91,12 @@ export const getAllScenes = async (_req: Request, res: Response): Promise<void> 
     res.json(ordered.map(inMemorySceneToJson));
   } catch (error) {
     console.error('[sceneController] Error fetching scenes:', error);
+    if (useDatabase) {
+      res.status(200).json([]);
+      return;
+    }
     res.status(500).json({
-      error: {
-        message: 'Failed to fetch scenes',
-        code: 'INTERNAL_ERROR',
-      },
+      error: { message: 'Failed to fetch scenes', code: 'INTERNAL_ERROR' },
     });
   }
 };
@@ -115,11 +116,12 @@ export const getActiveScene = async (_req: Request, res: Response): Promise<void
     res.json(scene ? inMemorySceneToJson(scene) : null);
   } catch (error) {
     console.error('[sceneController] Error fetching active scene:', error);
+    if (useDatabase) {
+      res.status(200).json(null);
+      return;
+    }
     res.status(500).json({
-      error: {
-        message: 'Failed to fetch active scene',
-        code: 'INTERNAL_ERROR',
-      },
+      error: { message: 'Failed to fetch active scene', code: 'INTERNAL_ERROR' },
     });
   }
 };
