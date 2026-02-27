@@ -15,6 +15,10 @@ dotenv.config();
 
 const app: Express = express();
 
+// Detrás de proxies (Railway, Supabase, etc.) confiar en X-Forwarded-For
+// para que express-rate-limit no lance ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
+app.set('trust proxy', 1);
+
 // Seguridad: cabeceras HTTP. CORP "cross-origin" para que las imágenes carguen tras túnel Cloudflare.
 app.use(
   helmet({
