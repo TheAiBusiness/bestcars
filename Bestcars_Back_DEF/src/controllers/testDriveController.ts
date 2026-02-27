@@ -44,7 +44,10 @@ export const submitTestDrive = async (
 
     if (missingFields.length > 0) {
       res.status(400).json({
-        error: 'All fields are required',
+        error: {
+          message: 'All fields are required',
+          code: 'VALIDATION_ERROR',
+        },
         missingFields,
       });
       return;
@@ -103,7 +106,12 @@ export const submitTestDrive = async (
     });
   } catch (error) {
     console.error('[testDriveController] Error:', error);
-    res.status(500).json({ error: 'Failed to submit test drive form' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to submit test drive form',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -137,7 +145,12 @@ export const getAllTestDrives = async (_req: Request, res: Response): Promise<vo
     res.json([]);
   } catch (error) {
     console.error('[testDriveController] Error fetching test drives:', error);
-    res.status(500).json({ error: 'Failed to fetch test drive submissions' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to fetch test drive submissions',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -148,13 +161,23 @@ export const updateTestDrive = async (req: Request, res: Response): Promise<void
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) {
-      res.status(400).json({ error: 'Invalid test drive id' });
+      res.status(400).json({
+        error: {
+          message: 'Invalid test drive id',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
     const { status, notes } = req.body ?? {};
 
     if (!useDatabase) {
-      res.status(501).json({ error: 'Update test drive requires DATABASE_URL' });
+      res.status(501).json({
+        error: {
+          message: 'Update test drive requires DATABASE_URL',
+          code: 'NOT_IMPLEMENTED',
+        },
+      });
       return;
     }
 
@@ -184,10 +207,20 @@ export const updateTestDrive = async (req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('[testDriveController] Error updating test drive:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Test drive not found' });
+      res.status(404).json({
+        error: {
+          message: 'Test drive not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to update test drive' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to update test drive',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -198,11 +231,21 @@ export const deleteTestDrive = async (req: Request, res: Response): Promise<void
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) {
-      res.status(400).json({ error: 'Invalid test drive id' });
+      res.status(400).json({
+        error: {
+          message: 'Invalid test drive id',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
     if (!useDatabase) {
-      res.status(501).json({ error: 'Delete test drive requires DATABASE_URL' });
+      res.status(501).json({
+        error: {
+          message: 'Delete test drive requires DATABASE_URL',
+          code: 'NOT_IMPLEMENTED',
+        },
+      });
       return;
     }
     await prisma.testDriveSubmission.delete({ where: { id } });
@@ -210,9 +253,19 @@ export const deleteTestDrive = async (req: Request, res: Response): Promise<void
   } catch (error) {
     console.error('[testDriveController] Error deleting test drive:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Test drive not found' });
+      res.status(404).json({
+        error: {
+          message: 'Test drive not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to delete test drive' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to delete test drive',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };

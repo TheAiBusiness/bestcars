@@ -39,7 +39,12 @@ export const login = (req: Request<object, object, LoginBody>, res: Response): v
   const { username, password } = req.body ?? ({} as LoginBody);
 
   if (!username || !password) {
-    res.status(400).json({ error: 'username and password are required' });
+    res.status(400).json({
+      error: {
+        message: 'username and password are required',
+        code: 'VALIDATION_ERROR',
+      },
+    });
     return;
   }
 
@@ -50,7 +55,12 @@ export const login = (req: Request<object, object, LoginBody>, res: Response): v
   const okPass = safeEquals(password, adminPass);
 
   if (!okUser || !okPass) {
-    res.status(401).json({ error: 'Invalid credentials' });
+    res.status(401).json({
+      error: {
+        message: 'Credenciales incorrectas',
+        code: 'AUTH_INVALID',
+      },
+    });
     return;
   }
 

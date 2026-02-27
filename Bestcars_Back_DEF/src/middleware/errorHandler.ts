@@ -6,7 +6,7 @@
 import { type Request, type Response, type NextFunction } from 'express';
 
 /** Error extendido con código de estado y códigos de Prisma */
-type AppError = Error & { status?: number; code?: string };
+export type AppError = Error & { status?: number; code?: string };
 
 /**
  * Manejador global de errores
@@ -16,29 +16,40 @@ type AppError = Error & { status?: number; code?: string };
  */
 export const errorHandler = (
   err: AppError,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ): void => {
-  console.error('[errorHandler]', err);
+  const isProd = process.env.NODE_ENV === 'production';
 
-  if (err.code === 'P2002') {
-    res.status(409).json({
-      error: 'Duplicate entry. This record already exists.',
+  // Mapear errores de Prisma a HTTP
+  let status = err.status ?? 500;
+  if (err.code === 'P2002') status = 409;
+  if (err.code === 'P2025') status = 404;
+
+  const message =
+    err.message ||
+    (status === 404 ? 'Resource not found' : 'Internal server error');
+
+  if (isProd) {
+    console.error('[errorHandler]', {
+      message,
+      code: err.code ?? null,
+      path: req.path,
     });
+  } else {
+    console.error('[errorHandler]', err);
+  }
+
+  if (res.headersSent) {
     return;
   }
 
-  if (err.code === 'P2025') {
-    res.status(404).json({
-      error: 'Record not found.',
-    });
-    return;
-  }
-
-  res.status(err.status ?? 500).json({
-    error: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  res.status(status).json({
+    error: {
+      message,
+      code: err.code ?? null,
+    },
   });
 };
 
@@ -48,7 +59,10 @@ export const errorHandler = (
  */
 export const notFoundHandler = (req: Request, res: Response): void => {
   res.status(404).json({
-    error: 'Route not found',
+    error: {
+      message: 'Route not found',
+      code: 'NOT_FOUND',
+    },
     path: req.path,
   });
 };

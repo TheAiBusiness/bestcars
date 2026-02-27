@@ -49,19 +49,34 @@ export const submitContact = async (
     const { vehicleId, vehicleTitle, name, email, phone, message } = req.body;
 
     if (!name?.trim() || !email?.trim()) {
-      res.status(400).json({ error: 'Name and email are required' });
+      res.status(400).json({
+        error: {
+          message: 'Name and email are required',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
 
     if (!isValidEmail(email)) {
-      res.status(400).json({ error: 'Invalid email format' });
+      res.status(400).json({
+        error: {
+          message: 'Invalid email format',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
 
     if (phone && phone.trim() !== '') {
       const phoneValidation = validatePhone(phone);
       if (!phoneValidation.isValid) {
-        res.status(400).json({ error: phoneValidation.error });
+        res.status(400).json({
+          error: {
+            message: phoneValidation.error,
+            code: 'VALIDATION_ERROR',
+          },
+        });
         return;
       }
     }
@@ -131,7 +146,12 @@ export const submitContact = async (
     });
   } catch (error) {
     console.error('[contactController] Error:', error);
-    res.status(500).json({ error: 'Failed to submit contact form' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to submit contact form',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -165,7 +185,12 @@ export const getAllContacts = async (_req: Request, res: Response): Promise<void
     res.json([...inMemoryContacts]);
   } catch (error) {
     console.error('[contactController] Error fetching contacts:', error);
-    res.status(500).json({ error: 'Failed to fetch contact submissions' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to fetch contact submissions',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -176,7 +201,12 @@ export const updateContact = async (req: Request, res: Response): Promise<void> 
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) {
-      res.status(400).json({ error: 'Invalid contact id' });
+      res.status(400).json({
+        error: {
+          message: 'Invalid contact id',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
     const { status, notes } = req.body ?? {};
@@ -208,7 +238,12 @@ export const updateContact = async (req: Request, res: Response): Promise<void> 
 
     const index = inMemoryContacts.findIndex((c) => c.id === id);
     if (index === -1) {
-      res.status(404).json({ error: 'Contact not found' });
+      res.status(404).json({
+        error: {
+          message: 'Contact not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     const c = inMemoryContacts[index];
@@ -219,10 +254,20 @@ export const updateContact = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('[contactController] Error updating contact:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Contact not found' });
+      res.status(404).json({
+        error: {
+          message: 'Contact not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to update contact' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to update contact',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -233,7 +278,12 @@ export const deleteContact = async (req: Request, res: Response): Promise<void> 
   try {
     const id = parseInt(req.params.id, 10);
     if (Number.isNaN(id)) {
-      res.status(400).json({ error: 'Invalid contact id' });
+      res.status(400).json({
+        error: {
+          message: 'Invalid contact id',
+          code: 'VALIDATION_ERROR',
+        },
+      });
       return;
     }
     if (useDatabase) {
@@ -243,7 +293,12 @@ export const deleteContact = async (req: Request, res: Response): Promise<void> 
     }
     const index = inMemoryContacts.findIndex((c) => c.id === id);
     if (index === -1) {
-      res.status(404).json({ error: 'Contact not found' });
+      res.status(404).json({
+        error: {
+          message: 'Contact not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     inMemoryContacts.splice(index, 1);
@@ -251,9 +306,19 @@ export const deleteContact = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('[contactController] Error deleting contact:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Contact not found' });
+      res.status(404).json({
+        error: {
+          message: 'Contact not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to delete contact' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to delete contact',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };

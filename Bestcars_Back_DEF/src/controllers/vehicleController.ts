@@ -263,7 +263,12 @@ export const createVehicle = async (
   }
   const price = normalizePrice(rawPrice);
   if (Number.isNaN(year) || year < 1900 || year > 2100) {
-    res.status(400).json({ error: 'year must be a valid number between 1900 and 2100' });
+    res.status(400).json({
+      error: {
+        message: 'year must be a valid number between 1900 and 2100',
+        code: 'VALIDATION_ERROR',
+      },
+    });
     return;
   }
 
@@ -316,7 +321,12 @@ export const createVehicle = async (
     res.status(201).json(formatVehicle(vehicle));
   } catch (error) {
     console.error('[vehicleController] Error creating vehicle:', error);
-    res.status(500).json({ error: 'Failed to create vehicle' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to create vehicle',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -347,7 +357,12 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
     const list = getInMemoryVehicles();
     const idx = list.findIndex((v) => v.id === id);
     if (idx === -1) {
-      res.status(404).json({ error: 'Vehicle not found' });
+      res.status(404).json({
+        error: {
+          message: 'Vehicle not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     const now = new Date();
@@ -385,10 +400,20 @@ export const updateVehicle = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('[vehicleController] Error updating vehicle:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Vehicle not found' });
+      res.status(404).json({
+        error: {
+          message: 'Vehicle not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to update vehicle' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to update vehicle',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -402,7 +427,12 @@ export const deleteVehicle = async (req: Request, res: Response): Promise<void> 
     const list = getInMemoryVehicles();
     const idx = list.findIndex((v) => v.id === id);
     if (idx === -1) {
-      res.status(404).json({ error: 'Vehicle not found' });
+      res.status(404).json({
+        error: {
+          message: 'Vehicle not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     list.splice(idx, 1);
@@ -416,9 +446,19 @@ export const deleteVehicle = async (req: Request, res: Response): Promise<void> 
   } catch (error) {
     console.error('[vehicleController] Error deleting vehicle:', error);
     if ((error as { code?: string }).code === 'P2025') {
-      res.status(404).json({ error: 'Vehicle not found' });
+      res.status(404).json({
+        error: {
+          message: 'Vehicle not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
-    res.status(500).json({ error: 'Failed to delete vehicle' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to delete vehicle',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };

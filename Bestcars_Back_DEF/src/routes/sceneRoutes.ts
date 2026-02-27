@@ -14,16 +14,17 @@ import {
   updateScene,
 } from '../controllers/sceneController.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = express.Router();
 
-router.get('/', getAllScenes);
-router.get('/active', getActiveScene);
-router.get('/:id', getSceneById);
+router.get('/', asyncHandler(getAllScenes));
+router.get('/active', asyncHandler(getActiveScene));
+router.get('/:id', asyncHandler(getSceneById));
 
-router.post('/', requireAuth, createScene);
-router.patch('/:id', requireAuth, updateScene);
-router.patch('/:id/activate', requireAuth, setActiveScene);
-router.delete('/:id', requireAuth, deleteScene);
+router.post('/', requireAuth, asyncHandler(createScene));
+router.patch('/:id', requireAuth, asyncHandler(updateScene));
+router.patch('/:id/activate', requireAuth, asyncHandler(setActiveScene));
+router.delete('/:id', requireAuth, asyncHandler(deleteScene));
 
 export default router;

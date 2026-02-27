@@ -69,7 +69,12 @@ export const getAllScenes = async (_req: Request, res: Response): Promise<void> 
     res.json(ordered);
   } catch (error) {
     console.error('[sceneController] Error fetching scenes:', error);
-    res.status(500).json({ error: 'Failed to fetch scenes' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to fetch scenes',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -88,7 +93,12 @@ export const getActiveScene = async (_req: Request, res: Response): Promise<void
     res.json(scene ?? null);
   } catch (error) {
     console.error('[sceneController] Error fetching active scene:', error);
-    res.status(500).json({ error: 'Failed to fetch active scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to fetch active scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -98,7 +108,12 @@ export const getSceneById = async (req: Request, res: Response): Promise<void> =
     if (useDatabase) {
       const scene = await prisma.scene.findUnique({ where: { id } });
       if (!scene) {
-        res.status(404).json({ error: 'Scene not found' });
+        res.status(404).json({
+          error: {
+            message: 'Scene not found',
+            code: 'NOT_FOUND',
+          },
+        });
         return;
       }
       res.json(sceneToJson(scene));
@@ -106,13 +121,23 @@ export const getSceneById = async (req: Request, res: Response): Promise<void> =
     }
     const scene = inMemoryScenes.find((s) => s.id === id);
     if (!scene) {
-      res.status(404).json({ error: 'Scene not found' });
+      res.status(404).json({
+        error: {
+          message: 'Scene not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     res.json(scene);
   } catch (error) {
     console.error('[sceneController] Error fetching scene:', error);
-    res.status(500).json({ error: 'Failed to fetch scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to fetch scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -159,7 +184,12 @@ export const createScene = async (req: Request, res: Response): Promise<void> =>
     res.status(201).json(scene);
   } catch (error) {
     console.error('[sceneController] Error creating scene:', error);
-    res.status(500).json({ error: 'Failed to create scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to create scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -187,7 +217,12 @@ export const updateScene = async (req: Request, res: Response): Promise<void> =>
 
     const index = inMemoryScenes.findIndex((s) => s.id === id);
     if (index === -1) {
-      res.status(404).json({ error: 'Scene not found' });
+      res.status(404).json({
+        error: {
+          message: 'Scene not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     const prev = inMemoryScenes[index];
@@ -207,7 +242,12 @@ export const updateScene = async (req: Request, res: Response): Promise<void> =>
     res.json(updated);
   } catch (error) {
     console.error('[sceneController] Error updating scene:', error);
-    res.status(500).json({ error: 'Failed to update scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to update scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -231,7 +271,12 @@ export const setActiveScene = async (req: Request, res: Response): Promise<void>
 
     const index = inMemoryScenes.findIndex((s) => s.id === id);
     if (index === -1) {
-      res.status(404).json({ error: 'Scene not found' });
+      res.status(404).json({
+        error: {
+          message: 'Scene not found',
+          code: 'NOT_FOUND',
+        },
+      });
       return;
     }
     inMemoryScenes.forEach((s) => {
@@ -242,7 +287,12 @@ export const setActiveScene = async (req: Request, res: Response): Promise<void>
     res.json(inMemoryScenes[index]);
   } catch (error) {
     console.error('[sceneController] Error setting active scene:', error);
-    res.status(500).json({ error: 'Failed to set active scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to set active scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };
 
@@ -272,6 +322,11 @@ export const deleteScene = async (req: Request, res: Response): Promise<void> =>
     res.status(204).send();
   } catch (error) {
     console.error('[sceneController] Error deleting scene:', error);
-    res.status(500).json({ error: 'Failed to delete scene' });
+    res.status(500).json({
+      error: {
+        message: 'Failed to delete scene',
+        code: 'INTERNAL_ERROR',
+      },
+    });
   }
 };

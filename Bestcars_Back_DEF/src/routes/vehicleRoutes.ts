@@ -16,13 +16,14 @@ import {
   trackVehicle,
 } from '../controllers/vehicleController.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 // Raíz del proyecto (funciona con npm run dev y npm start)
 const VEHICLE_IMAGES_DIR = path.join(process.cwd(), 'public', 'vehicle-images');
 
 const router = express.Router();
 
-router.get('/', getAllVehicles);
+router.get('/', asyncHandler(getAllVehicles));
 
 /** Sirve imágenes de vehículos por nombre de archivo (ej. AUDI RS6_42.jpg). Debe ir antes de /:id */
 router.get('/images/:filename', (req: Request, res: Response) => {
@@ -56,11 +57,11 @@ router.get('/images/:filename', (req: Request, res: Response) => {
   }
 });
 
-router.get('/:id', getVehicleById);
-router.post('/:id/track', trackVehicle);
+router.get('/:id', asyncHandler(getVehicleById));
+router.post('/:id/track', asyncHandler(trackVehicle));
 
-router.post('/', requireAuth, createVehicle);
-router.patch('/:id', requireAuth, updateVehicle);
-router.delete('/:id', requireAuth, deleteVehicle);
+router.post('/', requireAuth, asyncHandler(createVehicle));
+router.patch('/:id', requireAuth, asyncHandler(updateVehicle));
+router.delete('/:id', requireAuth, asyncHandler(deleteVehicle));
 
 export default router;

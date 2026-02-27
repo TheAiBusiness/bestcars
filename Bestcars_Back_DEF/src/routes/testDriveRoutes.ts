@@ -8,6 +8,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import { submitTestDrive, getAllTestDrives, updateTestDrive, deleteTestDrive } from '../controllers/testDriveController.js';
 import { requireAuth } from '../middleware/auth.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
 const router = express.Router();
 
@@ -19,9 +20,9 @@ const testDriveFormLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-router.post('/', testDriveFormLimiter, submitTestDrive);
-router.get('/', requireAuth, getAllTestDrives);
-router.patch('/:id', requireAuth, updateTestDrive);
-router.delete('/:id', requireAuth, deleteTestDrive);
+router.post('/', testDriveFormLimiter, asyncHandler(submitTestDrive));
+router.get('/', requireAuth, asyncHandler(getAllTestDrives));
+router.patch('/:id', requireAuth, asyncHandler(updateTestDrive));
+router.delete('/:id', requireAuth, asyncHandler(deleteTestDrive));
 
 export default router;
