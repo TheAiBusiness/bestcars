@@ -75,7 +75,7 @@ model Scene {
   id            String   @id @default(cuid())
   name          String
   backgroundUrl String   @map("background_url")
-  positions     Json     // { "parking-1": { vehicleId, transform, updatedAt }, ... }
+  positions     Json     // Lista de hotspots: [{ id, vehicleId, x, y, createdAt?, label? }]
   isActive      Boolean  @default(false) @map("is_active")
   order         Int      @default(0)
   createdAt     DateTime @default(now()) @map("created_at")

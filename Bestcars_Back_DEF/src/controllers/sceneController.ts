@@ -9,13 +9,14 @@ import { normalizeScene } from '../utils/sceneNormalize.js';
 
 const useDatabase = Boolean(process.env.DATABASE_URL);
 
-/** Hotspot: un coche colocado en la escena (x,y en px respecto al centro) */
+/** Hotspot: un coche colocado en la escena (x,y en px respecto al centro). Opcional: label. */
 export interface Hotspot {
   id: string;
   vehicleId: string;
   x: number;
   y: number;
   createdAt?: string;
+  label?: string;
 }
 
 /** Convierte positions/hotspots a array de hotspots para la API/persistencia */
@@ -306,7 +307,9 @@ export const setActiveScene = async (req: Request, res: Response): Promise<void>
       ]);
       const scene = await prisma.scene.findUnique({ where: { id } });
       if (!scene) {
-        res.status(404).json({ error: 'Scene not found' });
+        res.status(404).json({
+          error: { message: 'Scene not found', code: 'NOT_FOUND' },
+        });
         return;
       }
       res.json(sceneToJson(scene));
@@ -402,7 +405,9 @@ export const deleteScene = async (req: Request, res: Response): Promise<void> =>
 
     const index = inMemoryScenes.findIndex((s) => s.id === id);
     if (index === -1) {
-      res.status(404).json({ error: 'Scene not found' });
+      res.status(404).json({
+        error: { message: 'Scene not found', code: 'NOT_FOUND' },
+      });
       return;
     }
     inMemoryScenes.splice(index, 1);

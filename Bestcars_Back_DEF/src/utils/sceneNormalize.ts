@@ -20,6 +20,7 @@ export interface NormalizedHotspot {
   x: number;
   y: number;
   createdAt?: string;
+  label?: string;
 }
 
 export interface NormalizedScene {
@@ -70,13 +71,15 @@ export function normalizeScene(input: any): NormalizedScene {
       const vehicleId = String(h.vehicleId);
       const x = Number((h as any).x);
       const y = Number((h as any).y);
-      hotspots.push({
+      const out: NormalizedHotspot = {
         id: typeof h.id === 'string' && h.id ? h.id : generateHotspotId(),
         vehicleId,
         x: Number.isFinite(x) ? x : 0,
         y: Number.isFinite(y) ? y : 0,
         createdAt: typeof h.createdAt === 'string' ? h.createdAt : undefined,
-      });
+      };
+      if (typeof (h as any).label === 'string') out.label = (h as any).label;
+      hotspots.push(out);
     }
   };
 
