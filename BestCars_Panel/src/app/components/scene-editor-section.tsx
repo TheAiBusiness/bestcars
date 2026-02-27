@@ -35,7 +35,6 @@ function nowIso(): string {
 
 const DEFAULT_PREVIEW_URL = "http://localhost:5173/scene-preview";
 const SCENE_PRINCIPAL_IMAGE_URL = "/scene-principal-bestcars.png";
-const AUTO_SAVE_DEBOUNCE_MS = 600;
 const DRAG_THRESHOLD_PX = 5;
 
 export function SceneEditorSection({
@@ -85,10 +84,8 @@ export function SceneEditorSection({
   }, [scenes, storage.webActiveSceneId, webActiveScene]);
 
   const [addHotspotMode, setAddHotspotMode] = useState(false);
-  const [autoSave, setAutoSave] = useState(true);
   const [isDirty, setIsDirty] = useState(false);
   const [previewConnected, setPreviewConnected] = useState(false);
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
@@ -135,21 +132,6 @@ export function SceneEditorSection({
     );
   }, [vehicles, searchQuery]);
 
-  const markDirtyAndScheduleSave = useCallback(
-    (updatedScene: Scene) => {
-      setIsDirty(true);
-      if (!autoSave || !apiMode || !isAuthenticated) return;
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-      autoSaveTimerRef.current = setTimeout(() => {
-        autoSaveTimerRef.current = null;
-        persistScene(updatedScene).then((ok) => {
-          setIsDirty(!ok);
-        });
-      }, AUTO_SAVE_DEBOUNCE_MS);
-    },
-    [autoSave, apiMode, isAuthenticated, persistScene]
-  );
-
   const updateSceneHotspots = useCallback(
     (updater: (prev: Hotspot[]) => Hotspot[]) => {
       if (!activeScene) return;
@@ -164,9 +146,9 @@ export function SceneEditorSection({
         ...prev,
         scenes: prev.scenes.map((s) => (s.id === activeScene.id ? updated : s)),
       }));
-      markDirtyAndScheduleSave(updated);
+      setIsDirty(true);
     },
-    [activeScene, setStorage, markDirtyAndScheduleSave]
+    [activeScene, setStorage]
   );
 
   const selectScene = (sceneId: string) => {
@@ -353,11 +335,16 @@ export function SceneEditorSection({
     );
   };
 
-  const handleSaveScene = () => {
+  const handleSaveAndPublish = async () => {
     if (!activeScene) return;
-    persistScene(activeScene).then((ok) => {
-      setIsDirty(!ok);
-    });
+    const ok = await persistScene(activeScene);
+    setIsDirty(!ok);
+    if (!ok) return;
+    const finalSceneId = storage.activeSceneId;
+    const activated = await setActiveSceneApi(finalSceneId);
+    if (activated) {
+      setStorage((prev) => ({ ...prev, webActiveSceneId: finalSceneId }));
+    }
   };
 
   useEffect(() => {
@@ -606,21 +593,12 @@ export function SceneEditorSection({
                   <MapPin className="w-4 h-4" />
                   Añadir hotspot
                 </button>
-                <label className="flex items-center gap-2 text-sm text-white/70 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={autoSave}
-                    onChange={(e) => setAutoSave(e.target.checked)}
-                    className="rounded border-white/20"
-                  />
-                  Auto-guardar
-                </label>
                 <button
-                  onClick={handleSaveScene}
+                  onClick={handleSaveAndPublish}
                   className="px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.05] transition-all text-white/80 text-sm flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
-                  Guardar escena
+                  Guardar y publicar
                 </button>
               </div>
             </div>
