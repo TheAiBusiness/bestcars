@@ -28,7 +28,7 @@ Servidor en `http://localhost:3001`.
 | `PORT` | Puerto del servidor | Railway lo asigna automáticamente |
 | `NODE_ENV` | `development` / `production` | `production` |
 | `CORS_ORIGINS` | Orígenes permitidos (separados por coma) | URL del frontend y del panel (ej. `https://tuweb.com,https://panel.tuweb.com`) |
-| `DATABASE_URL` | URL de PostgreSQL (Supabase) | **Requerida** para persistencia |
+| `DATABASE_URL` | URL de PostgreSQL (Supabase). En Railway usa la del **pooler** (puerto 6543). Para `prisma db push` usa la conexión directa (5432) desde local. | **Requerida** para persistencia |
 | `JWT_SECRET` | Secreto para tokens del panel | **Cambiar** en producción |
 | `ADMIN_USERNAME` | Usuario login panel | Cambiar en producción |
 | `ADMIN_PASSWORD` | Contraseña login panel | Cambiar en producción |
@@ -107,16 +107,15 @@ Rutas con **Auth**: cabecera `Authorization: Bearer <token>` (token de `/api/aut
    - `CORS_ORIGINS`: URLs del frontend y del panel separadas por coma (ej. `https://bestcars.com,https://panel.bestcars.com`).
    - Opcional: `SENDGRID_API_KEY`, `FROM_EMAIL`, `RECIPIENT_EMAIL` para emails.
 
-3. **Build y start**: Railway detecta `package.json`.
-   - Build: `npm run build` (incluye `prisma generate && tsc`).
+3. **Build y start**: Railway usa `railway.toml` / `nixpacks.toml`.
+   - Build: `npm ci`, `prisma generate`, `npm run build`.
    - Start: `npm start` → `node dist/src/index.js`.
-   - El puerto se toma de `PORT` (Railway lo inyecta).
+   - **No configures "Pre Deploy Command"** en Railway (Settings → Deploy). Si pones `npx prisma db push` ahí, el deploy puede quedarse colgado: Supabase con pooler (puerto 6543) no es adecuado para el motor de Prisma en ese paso.
 
-4. **Base de datos**: Ejecutar una vez el schema en Supabase:
-   ```bash
-   npx prisma db push
-   ```
-   (desde local con `DATABASE_URL` apuntando a la misma DB, o desde un one-off en Railway).
+4. **Base de datos**: Ejecutar **una vez** el schema en Supabase desde tu máquina (con conexión **directa**, puerto 5432):
+   - En Supabase: Settings → Database → Connection string → **Session mode** (URI con puerto **5432**).
+   - En local: `DATABASE_URL="postgresql://...:5432/postgres" npx prisma db push`
+   - En producción usa la URL con **pooler (6543)** para `DATABASE_URL`; la app solo consulta, no ejecuta migraciones.
 
 5. **Health**: Railway puede usar `GET /api/health` o `GET /api/health/ready` para comprobar que el servicio está listo.
 

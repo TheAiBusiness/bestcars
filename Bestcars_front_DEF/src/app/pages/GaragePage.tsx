@@ -33,27 +33,35 @@ export default function GaragePage() {
     Promise.all([api.getScenes(), api.getActiveScene(), api.getAllVehicles()])
       .then(([sceneList, active, vList]) => {
         const list = Array.isArray(sceneList) ? sceneList : [];
-        if (list.length === 0 && active?.backgroundUrl) {
-          setScenes([active]);
-          setActiveSceneId(active.id);
-        } else {
-          setScenes(list);
-          if (active?.id) setActiveSceneId(active.id);
-        }
+        setScenes(list.length === 0 && active?.id ? [active] : list);
+        if (active?.id) setActiveSceneId(active.id);
         setVehicles(Array.isArray(vList) ? vList : []);
       })
       .catch(() => {});
   }, []);
 
-  // Sin "scene" en la URL (p. ej. al pulsar "Entrar al garaje") siempre mostrar escena 0, no la escena activa del backend.
-  const currentSceneIndex = sceneIndexFromUrl !== null
-    ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1))
-    : 0;
-  const activeScene = scenes[currentSceneIndex] && scenes[currentSceneIndex].backgroundUrl
-    ? scenes[currentSceneIndex]
-    : scenes[0]?.backgroundUrl
-      ? scenes[0]
-      : null;
+  // Índice de la escena a mostrar:
+  // - Si hay ?scene=N en la URL, usar ese índice.
+  // - Si no hay query, usar la escena activa del backend si existe; si no, la 0.
+  const activeIndexFromBackend =
+    activeSceneId && scenes.length > 0
+      ? Math.max(
+          0,
+          scenes.findIndex((s) => s.id === activeSceneId)
+        )
+      : 0;
+
+  const currentSceneIndex =
+    sceneIndexFromUrl !== null
+      ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1))
+      : activeIndexFromBackend;
+
+  const activeScene =
+    scenes[currentSceneIndex]?.backgroundUrl
+      ? scenes[currentSceneIndex]
+      : scenes[activeIndexFromBackend]?.backgroundUrl
+        ? scenes[activeIndexFromBackend]
+        : scenes[0] ?? null;
 
   const goToScene = (index: number) => {
     const next = Math.max(0, Math.min(index, scenes.length - 1));
@@ -80,8 +88,11 @@ export default function GaragePage() {
   const hotspots = sceneHotspots(activeScene);
   const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
 
-  // El fondo del garaje es siempre la imagen fija de ilustración;
-  // las escenas solo afectan a los hotspots.
+  // El fondo del garaje usa scene.backgroundUrl si existe; si no, la ilustración local.
+  const garageBackground =
+    activeScene?.backgroundUrl && activeScene.backgroundUrl.trim().length > 0
+      ? activeScene.backgroundUrl
+      : garageImage;
   const showScene = safeVehicles.length > 0;
 
   useEffect(() => {
@@ -102,7 +113,7 @@ export default function GaragePage() {
         <div
           className={`garage-image ${garageImageLoaded ? "loaded" : ""}`}
           style={{
-            backgroundImage: `url(${garageImage})`,
+            backgroundImage: `url(${garageBackground})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             minHeight: "100vh",

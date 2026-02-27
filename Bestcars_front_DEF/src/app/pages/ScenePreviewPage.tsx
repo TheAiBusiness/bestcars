@@ -92,6 +92,11 @@ export default function ScenePreviewPage() {
   const hotspots = sceneHotspots(scene);
   const safeHotspots = Array.isArray(hotspots) ? hotspots : [];
 
+  const background =
+    scene?.backgroundUrl && scene.backgroundUrl.trim().length > 0
+      ? scene.backgroundUrl
+      : garageImage;
+
   if (!scene) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white/50">
@@ -104,7 +109,7 @@ export default function ScenePreviewPage() {
     <div
       className="relative w-full min-h-screen bg-black"
       style={{
-        backgroundImage: `url(${garageImage})`,
+        backgroundImage: `url(${background})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

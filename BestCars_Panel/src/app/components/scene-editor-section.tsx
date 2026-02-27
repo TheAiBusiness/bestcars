@@ -413,6 +413,21 @@ export function SceneEditorSection({
   const [newSceneName, setNewSceneName] = useState("");
   const [newSceneBg, setNewSceneBg] = useState("");
 
+  const isPotentiallyInvalidBackgroundUrl = (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    // Permitimos URLs http/https y paths absolutos (/imagen.png) o data URLs.
+    if (
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("/") ||
+      trimmed.startsWith("data:")
+    ) {
+      return false;
+    }
+    return true;
+  };
+
   const vehicleMap = useMemo(() => new Map(vehicles.map((v) => [v.id, v])), [vehicles]);
 
   return (
@@ -736,7 +751,10 @@ export function SceneEditorSection({
                   ...prev,
                   scenes: prev.scenes.map((s) => (s.id === activeScene.id ? updated : s)),
                 }));
-                markDirtyAndScheduleSave(updated);
+                setIsDirty(true);
+                if (isPotentiallyInvalidBackgroundUrl(url)) {
+                  toast.warning("Para producción usa una URL http(s) o un path absoluto (ej. /mi-fondo.png).");
+                }
               }}
               placeholder="URL del fondo"
               className="w-full px-3 py-2 rounded-xl bg-white/[0.03] border border-white/10 text-white/80 placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
