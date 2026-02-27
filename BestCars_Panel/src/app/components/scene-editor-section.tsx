@@ -278,8 +278,8 @@ export function SceneEditorSection({
   };
 
   const onHotspotPointerDown = (e: React.PointerEvent, h: Hotspot) => {
+    e.preventDefault();
     e.stopPropagation();
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const rect = canvasRef.current?.getBoundingClientRect();
     const rectWidth = rect?.width || 1;
     const rectHeight = rect?.height || 1;
@@ -293,36 +293,39 @@ export function SceneEditorSection({
       rectWidth,
       rectHeight,
     };
-  };
 
-  const onHotspotPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current) return;
-    const dx = e.clientX - dragRef.current.startX;
-    const dy = e.clientY - dragRef.current.startY;
-    if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) dragRef.current.moved = true;
-    const dxNorm = dx / dragRef.current.rectWidth;
-    const dyNorm = dy / dragRef.current.rectHeight;
-    updateSceneHotspots((prev) =>
-      prev.map((p) =>
-        p.id === dragRef.current!.hotspotId
-          ? { ...p, x: dragRef.current!.baseX + dxNorm, y: dragRef.current!.baseY + dyNorm }
-          : p
-      )
-    );
-  };
+    const onDocPointerMove = (ev: PointerEvent) => {
+      if (!dragRef.current || ev.pointerId !== e.pointerId) return;
+      const dx = ev.clientX - dragRef.current.startX;
+      const dy = ev.clientY - dragRef.current.startY;
+      if (Math.abs(dx) > DRAG_THRESHOLD_PX || Math.abs(dy) > DRAG_THRESHOLD_PX) dragRef.current.moved = true;
+      const dxNorm = dx / dragRef.current.rectWidth;
+      const dyNorm = dy / dragRef.current.rectHeight;
+      updateSceneHotspots((prev) =>
+        prev.map((p) =>
+          p.id === dragRef.current!.hotspotId
+            ? { ...p, x: dragRef.current!.baseX + dxNorm, y: dragRef.current!.baseY + dyNorm }
+            : p
+        )
+      );
+    };
 
-  const onHotspotPointerUp = (e: React.PointerEvent) => {
-    if (dragRef.current) {
-      if (!dragRef.current.moved) {
-        setStorage((prev) => ({ ...prev, activeHotspotId: dragRef.current!.hotspotId }));
+    const onDocPointerUpOrCancel = (ev: PointerEvent) => {
+      if (ev.pointerId !== e.pointerId) return;
+      if (dragRef.current) {
+        if (!dragRef.current.moved) {
+          setStorage((prev) => ({ ...prev, activeHotspotId: dragRef.current!.hotspotId }));
+        }
+        dragRef.current = null;
       }
-      dragRef.current = null;
-    }
-    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-  };
+      document.removeEventListener("pointermove", onDocPointerMove);
+      document.removeEventListener("pointerup", onDocPointerUpOrCancel);
+      document.removeEventListener("pointercancel", onDocPointerUpOrCancel);
+    };
 
-  const onHotspotPointerCancel = () => {
-    dragRef.current = null;
+    document.addEventListener("pointermove", onDocPointerMove);
+    document.addEventListener("pointerup", onDocPointerUpOrCancel);
+    document.addEventListener("pointercancel", onDocPointerUpOrCancel);
   };
 
   const onHotspotClick = (e: React.MouseEvent, h: Hotspot) => {
@@ -667,9 +670,6 @@ export function SceneEditorSection({
                       cursor: "grab",
                     }}
                     onPointerDown={(e) => onHotspotPointerDown(e, h)}
-                    onPointerMove={onHotspotPointerMove}
-                    onPointerUp={onHotspotPointerUp}
-                    onPointerCancel={onHotspotPointerCancel}
                     onClick={(e) => onHotspotClick(e, h)}
                   >
                     <span className="scene-editor-hotspot-hitarea" aria-hidden="true" />
