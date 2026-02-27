@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 // @ts-expect-error - Importación de imagen con espacios en el nombre
 import garageImage from "../../assets/Ilustración_sin_título 103.jpg";
@@ -10,7 +10,6 @@ import SceneHotspots from "../components/SceneHotspots";
 import { api, getVehicleImageUrl, type Scene, sceneHotspots } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import "./GaragePage.css";
-import "./GaragePageSceneNav.css";
 
 const MOBILE_START_POSITION = 50;
 
@@ -59,16 +58,6 @@ export default function GaragePage() {
     sceneIndexFromUrl === null
       ? (activeSceneFromApi ?? scenes[0] ?? null)
       : (scenes[Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1))] ?? activeSceneFromApi ?? scenes[0] ?? null);
-
-  const currentSceneIndex =
-    sceneIndexFromUrl !== null
-      ? Math.min(sceneIndexFromUrl, Math.max(0, scenes.length - 1))
-      : (activeSceneFromApi && scenes.length > 0 ? Math.max(0, scenes.findIndex((s) => s.id === activeSceneFromApi.id)) : 0);
-
-  const goToScene = (index: number) => {
-    const next = Math.max(0, Math.min(index, scenes.length - 1));
-    setSearchParams(next === 0 ? {} : { scene: String(next) });
-  };
 
   useEffect(() => {
     if (pageRef.current) {
@@ -156,35 +145,6 @@ export default function GaragePage() {
       >
         Volver al Inicio
       </Link>
-      {/* Navigate between scenes - same style as Home "Entrar al garaje" / "Siguiente escena" */}
-      {scenes.length > 1 && (
-        <div className="garage-scene-nav" role="navigation" aria-label="Navegación entre escenas">
-          <button
-            type="button"
-            className="garage-scene-nav-btn"
-            onClick={() => goToScene(currentSceneIndex - 1)}
-            disabled={currentSceneIndex <= 0}
-            aria-label="Escena anterior"
-          >
-            <span className="garage-scene-nav-icon">
-              <ChevronLeft className="garage-scene-nav-svg" strokeWidth={2.5} />
-            </span>
-            <span className="garage-scene-nav-text">Escena anterior</span>
-          </button>
-          <button
-            type="button"
-            className="garage-scene-nav-btn"
-            onClick={() => goToScene(currentSceneIndex + 1)}
-            disabled={currentSceneIndex >= scenes.length - 1}
-            aria-label="Siguiente escena"
-          >
-            <span className="garage-scene-nav-icon">
-              <ChevronRight className="garage-scene-nav-svg" strokeWidth={2.5} />
-            </span>
-            <span className="garage-scene-nav-text">Siguiente escena</span>
-          </button>
-        </div>
-      )}
       {/* Actualizar escena: refetch para ver cambios del panel (temporal) */}
       <button
         type="button"

@@ -321,6 +321,10 @@ export function SceneEditorSection({
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
   };
 
+  const onHotspotPointerCancel = () => {
+    dragRef.current = null;
+  };
+
   const onHotspotClick = (e: React.MouseEvent, h: Hotspot) => {
     e.stopPropagation();
     setStorage((prev) => ({ ...prev, activeHotspotId: h.id }));
@@ -665,6 +669,7 @@ export function SceneEditorSection({
                     onPointerDown={(e) => onHotspotPointerDown(e, h)}
                     onPointerMove={onHotspotPointerMove}
                     onPointerUp={onHotspotPointerUp}
+                    onPointerCancel={onHotspotPointerCancel}
                     onClick={(e) => onHotspotClick(e, h)}
                   >
                     <span className="scene-editor-hotspot-hitarea" aria-hidden="true" />

@@ -63,11 +63,20 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
     async (vehicleId: string, updates: Partial<Vehicle>) => {
       if (apiMode && isAuthenticated) {
         try {
-          await updateVehicle(vehicleId, panelVehicleToApiUpdate(updates));
+          const apiPayload = panelVehicleToApiUpdate(updates);
+          if (Object.keys(apiPayload).length === 0) {
+            setVehiclesState((prev) =>
+              prev.map((v) =>
+                v.id === vehicleId ? { ...v, ...updates, updatedAt: new Date().toISOString() } : v
+              )
+            );
+            toast.success("Vehículo actualizado");
+            return;
+          }
+          const updatedFromApi = await updateVehicle(vehicleId, apiPayload);
+          const panelVehicle = apiVehicleToPanel(updatedFromApi);
           setVehiclesState((prev) =>
-            prev.map((v) =>
-              v.id === vehicleId ? { ...v, ...updates, updatedAt: new Date().toISOString() } : v
-            )
+            prev.map((v) => (v.id === vehicleId ? { ...v, ...panelVehicle } : v))
           );
           toast.success("Vehículo actualizado");
         } catch (err) {

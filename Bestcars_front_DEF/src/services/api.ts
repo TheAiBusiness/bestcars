@@ -104,10 +104,11 @@ export const api = {
   },
 
   /**
-   * Get active scene (for homepage/garage composition)
+   * Get active scene (for homepage/garage composition).
+   * Cache-bust para que los cambios de hotspots del panel se vean al refrescar o al volver a la pestaña.
    */
   async getActiveScene(): Promise<Scene | null> {
-    return fetchApi<Scene | null>('/api/scenes/active');
+    return fetchApi<Scene | null>(`/api/scenes/active?_t=${Date.now()}`);
   },
 
   /**

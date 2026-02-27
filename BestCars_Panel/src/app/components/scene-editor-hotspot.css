@@ -1,11 +1,16 @@
 /* Mismo estilo que los botones sobre los coches en la web (CarHotspots: dot + ring + label) */
+/* Área mínima 44px para que arrastrar funcione bien (touch y pointer) */
 .scene-editor-hotspot {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 12px;
-  height: 12px;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  margin-top: -22px;
+  touch-action: none;
+  user-select: none;
 }
 
 .scene-editor-hotspot-label {
@@ -86,16 +91,15 @@
   visibility: visible;
 }
 
-/* Hit area táctil 44x44 */
+/* Hit area: cubre todo el hotspot para que el arrastre sea fácil */
 .scene-editor-hotspot-hitarea {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 44px;
-  height: 44px;
-  margin-left: -22px;
-  margin-top: -22px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   cursor: grab;
+  z-index: 5;
 }
 .scene-editor-hotspot:active .scene-editor-hotspot-hitarea {
   cursor: grabbing;
