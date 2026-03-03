@@ -4,7 +4,7 @@
  */
 import { useMemo, useState } from "react";
 import { motion } from "motion/react";
-import { Mail, Phone, Calendar, User, MessageSquare, Inbox, Trash2 } from 'lucide-react';
+import { Mail, Phone, Calendar, User, MessageSquare, Inbox, Trash2, Car } from 'lucide-react';
 import { Lead, Vehicle } from '../data/mock-data';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
@@ -180,25 +180,37 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
             >
               <div className="p-6">
                 <div className="flex gap-6">
-                  {/* Vehicle Image */}
-                  {vehicle && (
-                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
+                  {/* Vehicle Image o placeholder si vehículo eliminado */}
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 relative">
+                    {vehicle ? (
                       <ImageWithFallback
                         src={vehicle.image}
                         alt={vehicle.name}
                         loading="lazy"
                         className="w-full h-full object-cover"
                       />
-                    </div>
-                  )}
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center bg-white/[0.04] text-white/40">
+                        <Car className="w-10 h-10 mb-1" strokeWidth={1.5} />
+                        <span className="text-[10px] md:text-xs text-center px-1">Sin imagen</span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Lead Info */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-lg text-white mb-1">{lead.name}</h3>
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <h3 className="text-lg text-white">{lead.name}</h3>
+                          {!vehicle && (
+                            <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                              Vehículo eliminado
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-white/50">
-                          Interesado en: <span className="text-white/70">{vehicle?.name}</span>
+                          Interesado en: <span className="text-white/70">{vehicle ? vehicle.name : 'Vehículo eliminado'}</span>
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
