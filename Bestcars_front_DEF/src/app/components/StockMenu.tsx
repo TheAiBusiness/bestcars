@@ -11,9 +11,11 @@ interface StockMenuProps {
   onOpenChange?: (open: boolean) => void;
   hideButton?: boolean;
   disableClose?: boolean;
+  /** Esquina del icono Instagram: 'top-right' por defecto, 'bottom-right' para evitar solapamiento con botones superiores */
+  instagramCorner?: 'top-right' | 'bottom-right';
 }
 
-export function StockMenu({ isOpen: isOpenProp, onOpenChange, hideButton = false, disableClose = false }: StockMenuProps = {}) {
+export function StockMenu({ isOpen: isOpenProp, onOpenChange, hideButton = false, disableClose = false, instagramCorner = 'top-right' }: StockMenuProps = {}) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = isOpenProp !== undefined ? isOpenProp : internalIsOpen;
   const setIsOpen = (open: boolean) => {
@@ -83,7 +85,9 @@ export function StockMenu({ isOpen: isOpenProp, onOpenChange, hideButton = false
         href="https://www.instagram.com/bestcarsiberica/"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 md:top-6 md:bottom-auto right-6 p-3 text-white bg-transparent transition-all duration-200 hover:opacity-70 z-50"
+        className={`fixed right-6 p-3 text-white bg-transparent transition-all duration-200 hover:opacity-70 z-50 ${
+          instagramCorner === 'bottom-right' ? 'bottom-6' : 'bottom-6 md:top-6 md:bottom-auto'
+        }`}
         aria-label="Síguenos en Instagram"
         title="Síguenos en Instagram"
       >

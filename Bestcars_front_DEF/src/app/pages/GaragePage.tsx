@@ -169,7 +169,7 @@ export default function GaragePage() {
       <button
         type="button"
         onClick={() => loadScenesData()}
-        className="fixed top-14 right-6 px-4 py-2 border border-white/60 text-white/90 bg-transparent rounded-sm transition-all duration-200 hover:bg-white/10 text-sm z-50"
+        className="fixed top-20 right-6 px-4 py-2 border border-white/60 text-white/90 bg-transparent rounded-sm transition-all duration-200 hover:bg-white/10 text-sm z-50"
         style={{
           fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
           fontWeight: 500,
@@ -194,7 +194,7 @@ export default function GaragePage() {
           Nuestro Stock
         </button>
       )}
-      <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} hideButton={true} disableClose={false} />
+      <StockMenu isOpen={isStockMenuOpen} onOpenChange={setIsStockMenuOpen} hideButton={true} disableClose={false} instagramCorner="bottom-right" />
       {scenes.length >= 2 && activeScene && (
         <NextSceneButton
           sceneIndex={Math.max(0, scenes.findIndex((s) => s.id === activeScene.id))}
