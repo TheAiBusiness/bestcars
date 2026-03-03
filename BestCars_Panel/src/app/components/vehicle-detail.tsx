@@ -227,10 +227,10 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
     setTags((t) => t.map((tag, i) => (i === index ? value : tag)));
 
   const statusOptions: Vehicle["status"][] = ["disponible", "reservado", "vendido"];
-  const statusLabels: Record<Vehicle["status"], string> = {
-    disponible: 'Disponible',
-    reservado: 'Reservado',
-    vendido: "Vendido",
+  const statusConfig: Record<Vehicle["status"], { bg: string; label: string; icon: string }> = {
+    disponible: { bg: "#22C55E", label: "Disponible", icon: "✓" },
+    reservado:  { bg: "#F59E0B", label: "Reservado",  icon: "⏳" },
+    vendido:    { bg: "#EF4444", label: "Vendido",    icon: "✕" },
   };
 
   // Datos formateados para el gráfico de histórico de precios
@@ -498,19 +498,26 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
                 <div className="rounded-2xl border border-white/10 bg-white/[0.02] backdrop-blur-xl p-6">
                   <p className="text-sm text-white/50 mb-3">Estado del vehículo</p>
                   <div className="space-y-2">
-                    {statusOptions.map((option) => (
-                      <button
-                        key={option}
-                        onClick={() => handleStatusChange(option)}
-                        className={`w-full px-4 py-2.5 rounded-xl border transition-all text-left ${
-                          status === option
-                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-white/20'
-                            : 'bg-white/[0.02] border-white/10 hover:border-white/20'
-                        }`}
-                      >
-                        <span className="text-white/90">{statusLabels[option]}</span>
-                      </button>
-                    ))}
+                    {statusOptions.map((option) => {
+                      const cfg = statusConfig[option];
+                      const isActive = status === option;
+                      return (
+                        <button
+                          key={option}
+                          onClick={() => handleStatusChange(option)}
+                          className="w-full px-4 py-2.5 rounded-xl border transition-all text-left flex items-center gap-2.5"
+                          style={isActive
+                            ? { backgroundColor: cfg.bg, borderColor: cfg.bg, color: "#fff" }
+                            : { backgroundColor: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.1)" }
+                          }
+                        >
+                          <span style={{ fontSize: 14, lineHeight: 1 }}>{cfg.icon}</span>
+                          <span className="font-medium" style={{ fontSize: 13, color: isActive ? "#fff" : "rgba(255,255,255,0.7)" }}>
+                            {cfg.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

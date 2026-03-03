@@ -213,15 +213,30 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Estado</label>
-                  <select
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-blue-500/50 appearance-none pr-10"
-                  >
-                    <option value="disponible" className="bg-black text-white">Disponible</option>
-                    <option value="reservado" className="bg-black text-white">Reservado</option>
-                    <option value="vendido" className="bg-black text-white">Vendido</option>
-                  </select>
+                  <div className="flex gap-2">
+                    {([
+                      { value: "disponible", bg: "#22C55E", label: "Disponible", icon: "✓" },
+                      { value: "reservado",  bg: "#F59E0B", label: "Reservado",  icon: "⏳" },
+                      { value: "vendido",    bg: "#EF4444", label: "Vendido",    icon: "✕" },
+                    ] as const).map((opt) => {
+                      const isActive = formData.status === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, status: opt.value as any })}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all"
+                          style={isActive
+                            ? { backgroundColor: opt.bg, borderColor: opt.bg, color: "#fff" }
+                            : { backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }
+                          }
+                        >
+                          <span style={{ fontSize: 13, lineHeight: 1 }}>{opt.icon}</span>
+                          <span className="font-medium" style={{ fontSize: 12 }}>{opt.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>

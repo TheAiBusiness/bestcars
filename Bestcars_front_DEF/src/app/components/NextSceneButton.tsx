@@ -7,6 +7,23 @@ interface NextSceneButtonProps {
   totalScenes?: number;
   isStockMenuOpen?: boolean;
   isTermsOpen?: boolean;
+  fromGarage?: boolean;
+}
+
+function ChevronLeft() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
+function ChevronRight() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 6 15 12 9 18" />
+    </svg>
+  );
 }
 
 export function NextSceneButton({
@@ -14,33 +31,45 @@ export function NextSceneButton({
   totalScenes = 0,
   isStockMenuOpen = false,
   isTermsOpen = false,
+  fromGarage = false,
 }: NextSceneButtonProps) {
-  if (totalScenes < 2 || isStockMenuOpen || isTermsOpen) return null;
+  if (isStockMenuOpen || isTermsOpen) return null;
 
+  if (fromGarage) {
+    if (totalScenes < 1) return null;
+    return (
+      <Link to="/escena?index=0" className="scene-nav scene-nav--right" aria-label="Ver escenas">
+        <ChevronRight />
+        <span className="scene-nav__label">Ver escenas</span>
+      </Link>
+    );
+  }
+
+  if (totalScenes < 2) return null;
+
+  const prevIndex = (sceneIndex - 1 + totalScenes) % totalScenes;
   const nextIndex = (sceneIndex + 1) % totalScenes;
-  const isBackToGarage = nextIndex === 0;
-  const destination = isBackToGarage ? "/garage" : "/escena?index=" + nextIndex;
-  const label = isBackToGarage
-    ? "Volver al garaje"
-    : totalScenes > 3
-      ? "Escena " + (nextIndex + 1)
-      : "Siguiente escena";
+
+  const isPrevGarage = prevIndex === 0 && sceneIndex === 1;
+  const isNextGarage = nextIndex === 0;
+
+  const prevDest = isPrevGarage ? "/garage" : `/escena?index=${prevIndex}`;
+  const nextDest = isNextGarage ? "/garage" : `/escena?index=${nextIndex}`;
+
+  const prevLabel = isPrevGarage ? "Garaje" : `Escena ${prevIndex + 1}`;
+  const nextLabel = isNextGarage ? "Garaje" : `Escena ${nextIndex + 1}`;
 
   return (
-    <Link
-      to={destination}
-      className="next-scene-btn"
-      aria-label={label}
-    >
-      <span className="next-scene-icon">
-        <svg width="13" height="11" viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="white">
-          <line x1="11.7052" y1="4.77742" x2="6.8748" y2="9.60777" strokeWidth="2" />
-          <path d="M10.2912 4.77745L6.89487 1.38135" strokeWidth="2" />
-          <line x1="10.5151" y1="5.45581" x2="0.998047" y2="5.45581" strokeWidth="2" />
-        </svg>
-      </span>
-      <span className="next-scene-text">{label}</span>
-    </Link>
+    <>
+      <Link to={prevDest} className="scene-nav scene-nav--left" aria-label={prevLabel}>
+        <ChevronLeft />
+        <span className="scene-nav__label">{prevLabel}</span>
+      </Link>
+      <Link to={nextDest} className="scene-nav scene-nav--right" aria-label={nextLabel}>
+        <span className="scene-nav__label">{nextLabel}</span>
+        <ChevronRight />
+      </Link>
+    </>
   );
 }
 

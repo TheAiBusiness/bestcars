@@ -54,17 +54,10 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
     },
   });
 
-  // Estilos por estado del vehículo (disponible, reservado, vendido)
-  const statusColors: Record<Vehicle["status"], string> = {
-    disponible: "from-green-500/20 to-emerald-500/20 border-green-500/30",
-    reservado: "from-yellow-500/20 to-amber-500/20 border-yellow-500/30",
-    vendido: "from-gray-500/20 to-slate-500/20 border-gray-500/30",
-  };
-
-  const statusLabels: Record<Vehicle["status"], string> = {
-    disponible: 'Disponible',
-    reservado: 'Reservado',
-    vendido: "Vendido",
+  const statusConfig: Record<Vehicle["status"], { bg: string; label: string; icon: string }> = {
+    disponible: { bg: "#22C55E", label: "Disponible", icon: "✓" },
+    reservado:  { bg: "#F59E0B", label: "Reservado",  icon: "⏳" },
+    vendido:    { bg: "#EF4444", label: "Vendido",    icon: "✕" },
   };
 
   // Calcula la variación de precio respecto al anterior registro
@@ -113,8 +106,14 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
           
           {/* Status Badge */}
           <div className="absolute top-3 right-3">
-            <div className={`px-3 py-1.5 rounded-full bg-gradient-to-r ${statusColors[vehicle.status]} border backdrop-blur-sm`}>
-              <span className="text-xs text-white/90">{statusLabels[vehicle.status]}</span>
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-lg"
+              style={{ backgroundColor: statusConfig[vehicle.status].bg, minHeight: 28 }}
+            >
+              <span className="text-xs leading-none">{statusConfig[vehicle.status].icon}</span>
+              <span className="text-xs font-semibold text-white leading-none" style={{ fontSize: 12 }}>
+                {statusConfig[vehicle.status].label}
+              </span>
             </div>
           </div>
 
@@ -287,18 +286,20 @@ export function StockSection({ vehicles, onVehicleClick, onReorder, onPriceUpdat
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-green-500/[0.05] to-emerald-500/[0.02] backdrop-blur-xl p-6"
+            className="relative rounded-2xl border backdrop-blur-xl p-6"
+            style={{ borderColor: "#22C55E33", background: "linear-gradient(135deg, #22C55E0D, #22C55E05)" }}
           >
-            <p className="text-sm text-white/50 mb-2">Disponibles</p>
+            <p className="text-sm mb-2" style={{ color: "#22C55E" }}>✓ Disponibles</p>
             <p className="text-3xl text-white">{vehicles.filter(v => v.status === 'disponible').length}</p>
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-yellow-500/[0.05] to-amber-500/[0.02] backdrop-blur-xl p-6"
+            className="relative rounded-2xl border backdrop-blur-xl p-6"
+            style={{ borderColor: "#F59E0B33", background: "linear-gradient(135deg, #F59E0B0D, #F59E0B05)" }}
           >
-            <p className="text-sm text-white/50 mb-2">Reservados</p>
+            <p className="text-sm mb-2" style={{ color: "#F59E0B" }}>⏳ Reservados</p>
             <p className="text-3xl text-white">{vehicles.filter(v => v.status === 'reservado').length}</p>
           </motion.div>
           <motion.div
