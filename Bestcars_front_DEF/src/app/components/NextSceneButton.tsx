@@ -47,17 +47,16 @@ export function NextSceneButton({
 
   if (totalScenes < 2) return null;
 
+  // Navegación circular: Escena 1 ↔ Escena 2 ↔ ... ↔ Última ↔ Escena 1
+  // El Garaje NUNCA forma parte del ciclo de escenas
   const prevIndex = (sceneIndex - 1 + totalScenes) % totalScenes;
   const nextIndex = (sceneIndex + 1) % totalScenes;
 
-  const isPrevGarage = prevIndex === 0 && sceneIndex === 1;
-  const isNextGarage = nextIndex === 0;
+  const prevDest = `/experiencia?index=${prevIndex}`;
+  const nextDest = `/experiencia?index=${nextIndex}`;
 
-  const prevDest = isPrevGarage ? "/garage" : `/experiencia?index=${prevIndex}`;
-  const nextDest = isNextGarage ? "/garage" : `/experiencia?index=${nextIndex}`;
-
-  const prevLabel = isPrevGarage ? "Garaje" : `Escena ${prevIndex + 1}`;
-  const nextLabel = isNextGarage ? "Garaje" : `Escena ${nextIndex + 1}`;
+  const prevLabel = `Escena ${prevIndex + 1}`;
+  const nextLabel = `Escena ${nextIndex + 1}`;
 
   return (
     <>

@@ -99,10 +99,10 @@ export default function DynamicScenePage() {
 
     if (dx < -SWIPE_MIN) {
       const next = (currentIndex + 1) % scenes.length;
-      goToScene(next === 0 ? -1 : next);
+      goToScene(next);
     } else if (dx > SWIPE_MIN) {
-      const prev = currentIndex - 1;
-      goToScene(prev < 0 ? -1 : prev);
+      const prev = (currentIndex - 1 + scenes.length) % scenes.length;
+      goToScene(prev);
     }
   }, [currentIndex, scenes.length, goToScene]);
 
