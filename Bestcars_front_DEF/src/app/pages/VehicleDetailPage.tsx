@@ -176,6 +176,13 @@ export function VehicleDetailPage() {
     };
   }, [vehicle?.title, vehicle?.year]);
 
+  // Mover carSchema useMemo ANTES de los returns condicionales para cumplir Rules of Hooks
+  const carSchema = useMemo(() => {
+    if (!vehicle) return null;
+    const imgs = (Array.isArray(vehicle.images) ? vehicle.images : []).map(getVehicleImageUrl);
+    return buildCarJsonLd(vehicle, imgs);
+  }, [vehicle]);
+
   if (loading) {
     return <VehicleDetailSkeleton />;
   }
@@ -224,10 +231,6 @@ export function VehicleDetailPage() {
   const stats = vehicleToStats(vehicle);
   const images = Array.isArray(vehicle.images) ? vehicle.images : [];
   const mappedImages = images.map(getVehicleImageUrl);
-  const carSchema = useMemo(() => {
-    const imgs = (Array.isArray(vehicle.images) ? vehicle.images : []).map(getVehicleImageUrl);
-    return buildCarJsonLd(vehicle, imgs);
-  }, [vehicle]);
 
   return (
     <div className="min-h-screen">
@@ -251,7 +254,7 @@ export function VehicleDetailPage() {
         <meta name="twitter:title" content={String(seoData.title)} />
         <meta name="twitter:description" content={String(seoData.description)} />
         <meta name="twitter:image" content={mappedImages[0] || `${BASE_URL}/favicon.png`} />
-        <script type="application/ld+json">{JSON.stringify(carSchema)}</script>
+        {carSchema && <script type="application/ld+json">{JSON.stringify(carSchema)}</script>}
       </Helmet>
       <Header hideCloseButton={true} />
 
