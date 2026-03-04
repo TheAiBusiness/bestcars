@@ -10,6 +10,14 @@ import { BreadcrumbJsonLd } from "../components/BreadcrumbJsonLd";
 import fallbackImage from "../../assets/Ilustración_sin_título 103.jpg";
 import "./DynamicScenePage.css";
 
+/** Excluye la escena del Garaje del ciclo de /experiencia. Misma lista para navegación e imagen. */
+function scenesForExperiencia(list: Scene[]): Scene[] {
+  const filtered = (list ?? []).filter(
+    (s) => s?.name && !/garaje|garage/i.test(s.name.trim())
+  );
+  return filtered.length > 0 ? filtered : Array.isArray(list) ? list : [];
+}
+
 export default function DynamicScenePage() {
   const [searchParams] = useSearchParams();
   const indexParam = searchParams.get("index");
@@ -37,7 +45,8 @@ export default function DynamicScenePage() {
     Promise.all([api.getScenes(), api.getAllVehicles()])
       .then(([list, vList]) => {
         if (cancelled) return;
-        const sceneList = Array.isArray(list) ? (list as Scene[]) : [];
+        const rawList = Array.isArray(list) ? (list as Scene[]) : [];
+        const sceneList = scenesForExperiencia(rawList);
         setScenes(sceneList);
         setVehicles(Array.isArray(vList) ? vList : []);
 
