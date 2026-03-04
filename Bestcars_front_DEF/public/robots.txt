@@ -1,5 +1,19 @@
+# BestCars Ibérica - robots.txt
+# https://bestcarsiberica.com/robots.txt
+
 User-agent: *
 Allow: /
-Disallow: /scene-preview
 
-Sitemap: https://bestcarsiberica.com/api/sitemap
+# Rutas que no deben indexarse
+Disallow: /scene-preview
+Disallow: /scene-preview/
+Disallow: /panel
+Disallow: /panel/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /api/
+
+# Nota: /assets (CSS, JS, imágenes) permitidos por Allow: /
+# Google necesita acceder a ellos para renderizar la página
+
+Sitemap: https://bestcarsiberica.com/sitemap.xml

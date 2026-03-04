@@ -142,16 +142,18 @@ export function VehicleDetailPage() {
     const suffix = ' | Best Cars Ibérica';
     const maxTitleLen = 60;
     if (!vehicle?.title) {
-      return { title: `Vehículo${suffix}`, description: 'Ficha de vehículo de lujo en Best Cars Ibérica, Ibiza.' };
+      return { title: `Vehículo en Madrid${suffix}`, description: 'Ficha de vehículo de lujo en Best Cars Ibérica, Madrid. Compra y venta de coches premium.' };
     }
-    let vehicleTitle = vehicle.title;
-    if ((vehicleTitle + suffix).length > maxTitleLen) {
-      vehicleTitle = vehicleTitle.slice(0, maxTitleLen - suffix.length - 1) + '…';
+    // Formato: "{Marca} {Modelo} en Madrid | Best Cars Ibérica"
+    const baseTitle = `${vehicle.title} en Madrid`;
+    let title = baseTitle + suffix;
+    if (title.length > maxTitleLen) {
+      title = baseTitle.slice(0, maxTitleLen - suffix.length - 2) + '…' + suffix;
     }
     const year = vehicle.year ? ` (${vehicle.year})` : '';
-    const desc = `${vehicle.title}${year}. Disponible en Best Cars Ibérica, concesionario de lujo en Ibiza.`;
+    const desc = `${vehicle.title}${year} en Madrid. Disponible en Best Cars Ibérica. Compra y venta de vehículos premium.`;
     return {
-      title: vehicleTitle + suffix,
+      title,
       description: desc.length > 155 ? desc.slice(0, 152) + '…' : desc,
     };
   }, [vehicle?.title, vehicle?.year]);
@@ -165,7 +167,7 @@ export function VehicleDetailPage() {
       <div className="min-h-screen">
         <Helmet>
           <title>Vehículo no encontrado — Best Cars Ibérica</title>
-          <meta name="description" content="No se pudo cargar el vehículo. Vuelve a explorar nuestro catálogo de coches de lujo en Ibiza." />
+          <meta name="description" content="No se pudo cargar el vehículo. Vuelve a explorar nuestro catálogo de coches de lujo en Madrid." />
         </Helmet>
         <Header />
         <main className="max-w-[1280px] mx-auto my-6 mb-24 px-6">

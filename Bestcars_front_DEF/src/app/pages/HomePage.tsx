@@ -110,16 +110,16 @@ export function HomePage() {
       <BreadcrumbJsonLd items={[{ name: "Inicio", url: `${BASE_URL}/` }]} />
       <Helmet>
         <link rel="canonical" href={`${BASE_URL}`} />
-        <title>Best Cars Ibérica — Vehículos de Lujo en Ibiza</title>
-        <meta name="description" content="Descubre nuestra selección exclusiva de vehículos de lujo en Ibiza. Coches premium de las mejores marcas con servicio personalizado." />
-        <meta property="og:title" content="Best Cars Ibérica — Vehículos de Lujo en Ibiza" />
-        <meta property="og:description" content="Descubre nuestra selección exclusiva de vehículos de lujo en Ibiza. Coches premium de las mejores marcas con servicio personalizado." />
+        <title>Coches de lujo en Madrid | Audi, BMW, Porsche | Best Cars Ibérica</title>
+        <meta name="description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
+        <meta property="og:title" content="Coches de lujo en Madrid | Audi, BMW, Porsche | Best Cars Ibérica" />
+        <meta property="og:description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
         <meta property="og:image" content={new URL(houseImage, BASE_URL).href} />
         <meta property="og:url" content={`${BASE_URL}/`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Best Cars Ibérica — Vehículos de Lujo en Ibiza" />
-        <meta name="twitter:description" content="Descubre nuestra selección exclusiva de vehículos de lujo en Ibiza. Coches premium de las mejores marcas con servicio personalizado." />
+        <meta name="twitter:title" content="Coches de lujo en Madrid | Audi, BMW, Porsche | Best Cars Ibérica" />
+        <meta name="twitter:description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
         <meta name="twitter:image" content={new URL(houseImage, BASE_URL).href} />
         <script type="application/ld+json">
           {JSON.stringify(organizationLocalBusinessSchema)}
@@ -129,7 +129,7 @@ export function HomePage() {
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 text-white text-sm md:text-base font-medium tracking-wide pointer-events-none text-center"
         style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}
       >
-        Vehículos de Lujo en Ibiza — Best Cars Ibérica
+        Coches de lujo en Madrid — Best Cars Ibérica
       </h1>
       <div className="image-wrapper">
         {/* Loading overlay */}

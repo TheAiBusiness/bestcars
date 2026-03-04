@@ -15,15 +15,15 @@ export default function NotFoundPage() {
       <Helmet>
         <link rel="canonical" href={BASE_URL} />
         <title>Página No Encontrada — Best Cars Ibérica</title>
-        <meta name="description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir los mejores vehículos de lujo en Ibiza." />
+        <meta name="description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir coches de lujo en Madrid." />
         <meta property="og:title" content="Página No Encontrada — Best Cars Ibérica" />
-        <meta property="og:description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir los mejores vehículos de lujo en Ibiza." />
+        <meta property="og:description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir coches de lujo en Madrid." />
         <meta property="og:image" content={DEFAULT_OG_IMAGE} />
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : BASE_URL} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Página No Encontrada — Best Cars Ibérica" />
-        <meta name="twitter:description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir los mejores vehículos de lujo en Ibiza." />
+        <meta name="twitter:description" content="La página que buscas no existe. Vuelve a nuestra web para descubrir coches de lujo en Madrid." />
         <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
       </Helmet>
       <Header />

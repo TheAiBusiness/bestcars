@@ -58,16 +58,16 @@ export default function GaragePage() {
       />
       <Helmet>
         <link rel="canonical" href={`${BASE_URL}/garage`} />
-        <title>Nuestro Garaje — Best Cars Ibérica</title>
-        <meta name="description" content="Explora todos los vehículos disponibles en Best Cars Ibérica. Coches de lujo seminuevos y nuevos en Ibiza." />
-        <meta property="og:title" content="Nuestro Garaje — Best Cars Ibérica" />
-        <meta property="og:description" content="Explora todos los vehículos disponibles en Best Cars Ibérica. Coches de lujo seminuevos y nuevos en Ibiza." />
+        <title>Catálogo vehículos premium Madrid | Best Cars Ibérica</title>
+        <meta name="description" content="Explora nuestro catálogo de coches de lujo en Madrid. Seminuevos y nuevos: Audi, BMW, Porsche. Encuentra tu vehículo ideal." />
+        <meta property="og:title" content="Catálogo vehículos premium Madrid | Best Cars Ibérica" />
+        <meta property="og:description" content="Explora nuestro catálogo de coches de lujo en Madrid. Seminuevos y nuevos: Audi, BMW, Porsche. Encuentra tu vehículo ideal." />
         <meta property="og:image" content={new URL(garageImage, BASE_URL).href} />
         <meta property="og:url" content={`${BASE_URL}/garage`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Nuestro Garaje — Best Cars Ibérica" />
-        <meta name="twitter:description" content="Explora todos los vehículos disponibles en Best Cars Ibérica. Coches de lujo seminuevos y nuevos en Ibiza." />
+        <meta name="twitter:title" content="Catálogo vehículos premium Madrid | Best Cars Ibérica" />
+        <meta name="twitter:description" content="Explora nuestro catálogo de coches de lujo en Madrid. Seminuevos y nuevos: Audi, BMW, Porsche. Encuentra tu vehículo ideal." />
         <meta name="twitter:image" content={new URL(garageImage, BASE_URL).href} />
       </Helmet>
       <h1

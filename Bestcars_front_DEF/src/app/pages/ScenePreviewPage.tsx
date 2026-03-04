@@ -72,15 +72,15 @@ export default function ScenePreviewPage() {
     <div className="w-full h-screen bg-black overflow-hidden">
       <Helmet>
         <title>Vista Previa — Best Cars Ibérica</title>
-        <meta name="description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Ibiza." />
+        <meta name="description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Madrid." />
         <meta property="og:title" content="Vista Previa — Best Cars Ibérica" />
-        <meta property="og:description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Ibiza." />
+        <meta property="og:description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Madrid." />
         <meta property="og:image" content={ogImage} />
         <meta property="og:url" content={`${BASE_URL}/scene-preview`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Vista Previa — Best Cars Ibérica" />
-        <meta name="twitter:description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Ibiza." />
+        <meta name="twitter:description" content="Previsualiza nuestros vehículos de lujo en escenarios exclusivos. Best Cars Ibérica, Madrid." />
         <meta name="twitter:image" content={ogImage} />
       </Helmet>
       <h1

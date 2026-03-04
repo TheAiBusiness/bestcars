@@ -18,15 +18,15 @@ export default function PrivacyPage() {
       <Helmet>
         <link rel="canonical" href={`${BASE_URL}/privacidad`} />
         <title>Política de Privacidad — Best Cars Ibérica</title>
-        <meta name="description" content="Política de privacidad y protección de datos de Best Cars Ibérica, concesionario de vehículos de lujo en Ibiza." />
+        <meta name="description" content="Política de privacidad y protección de datos de Best Cars Ibérica." />
         <meta property="og:title" content="Política de Privacidad — Best Cars Ibérica" />
-        <meta property="og:description" content="Política de privacidad y protección de datos de Best Cars Ibérica, concesionario de vehículos de lujo en Ibiza." />
+        <meta property="og:description" content="Política de privacidad y protección de datos de Best Cars Ibérica." />
         <meta property="og:image" content={`${BASE_URL}/favicon.png`} />
         <meta property="og:url" content={`${BASE_URL}/privacidad`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Política de Privacidad — Best Cars Ibérica" />
-        <meta name="twitter:description" content="Política de privacidad y protección de datos de Best Cars Ibérica, concesionario de vehículos de lujo en Ibiza." />
+        <meta name="twitter:description" content="Política de privacidad y protección de datos de Best Cars Ibérica." />
         <meta name="twitter:image" content={`${BASE_URL}/favicon.png`} />
       </Helmet>
       <Header />

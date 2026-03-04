@@ -155,16 +155,16 @@ export default function DynamicScenePage() {
       />
       <Helmet>
         <link rel="canonical" href={`${BASE_URL}/experiencia`} />
-        <title>Experiencia Visual — Best Cars Ibérica</title>
-        <meta name="description" content="Vive la experiencia visual de nuestros coches de lujo en escenarios únicos. Best Cars Ibérica, Ibiza." />
-        <meta property="og:title" content="Experiencia Visual — Best Cars Ibérica" />
-        <meta property="og:description" content="Vive la experiencia visual de nuestros coches de lujo en escenarios únicos. Best Cars Ibérica, Ibiza." />
+        <title>Showroom virtual 360° — Coches de lujo Madrid | Best Cars Ibérica</title>
+        <meta name="description" content="Vive la experiencia 360° de nuestros vehículos premium en Madrid. Audi, BMW, Porsche. Recorre nuestro showroom virtual." />
+        <meta property="og:title" content="Showroom virtual 360° — Coches de lujo Madrid | Best Cars Ibérica" />
+        <meta property="og:description" content="Vive la experiencia 360° de nuestros vehículos premium en Madrid. Audi, BMW, Porsche. Recorre nuestro showroom virtual." />
         <meta property="og:image" content={background.startsWith("http") ? background : new URL(fallbackImage, BASE_URL).href} />
         <meta property="og:url" content={`${BASE_URL}/experiencia`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Experiencia Visual — Best Cars Ibérica" />
-        <meta name="twitter:description" content="Vive la experiencia visual de nuestros coches de lujo en escenarios únicos. Best Cars Ibérica, Ibiza." />
+        <meta name="twitter:title" content="Showroom virtual 360° — Coches de lujo Madrid | Best Cars Ibérica" />
+        <meta name="twitter:description" content="Vive la experiencia 360° de nuestros vehículos premium en Madrid. Audi, BMW, Porsche. Recorre nuestro showroom virtual." />
         <meta name="twitter:image" content={background.startsWith("http") ? background : new URL(fallbackImage, BASE_URL).href} />
       </Helmet>
       <h1
