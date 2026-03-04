@@ -14,14 +14,14 @@ interface ProductHeaderProps {
 }
 
 /** Formato para mostrar: acepta "125000" o "€125.000" y devuelve "€125.000" */
-function formatPriceDisplay(price: string): string {
-  let s = String(price ?? '').trim().replace(/€/g, '').replace(/\s/g, '');
-  s = s.replace(/\./g, '').replace(',', '.');
-  const num = parseFloat(s);
-  if (s !== '' && !Number.isNaN(num)) {
+function formatPriceDisplay(price: unknown): string {
+  const s = String(price ?? '').trim().replace(/€/g, '').replace(/\s/g, '');
+  const cleaned = s.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(cleaned);
+  if (cleaned !== '' && !Number.isNaN(num)) {
     return `€${num.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
   }
-  return String(price ?? '').trim() || price;
+  return String(price ?? '').trim() || '—';
 }
 
 export function ProductHeader({ title, year, mileage, price, priceSubtext, tags, onRequestTestDrive, vehicleId: _vehicleId, vehicleTitle: _vehicleTitle }: ProductHeaderProps) {
@@ -99,7 +99,7 @@ export function ProductHeader({ title, year, mileage, price, priceSubtext, tags,
                 className="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/[0.08] bg-white/[.04] text-white/70 text-[10px] sm:text-xs"
                 style={{ fontWeight: 600 }}
               >
-                {tag}
+                {typeof tag === 'string' ? tag : String(tag ?? '')}
               </span>
             ))}
           </div>

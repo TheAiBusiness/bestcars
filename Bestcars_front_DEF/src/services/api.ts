@@ -73,14 +73,35 @@ export const api = {
 
   /**
    * Get a single vehicle by ID.
-   * Normaliza la respuesta para que images y tags sean siempre arrays.
+   * Normaliza la respuesta: images/tags arrays, y campos primitivos (evita Decimal/Date/objetos que causan React #310).
    */
   async getVehicleById(id: string): Promise<Vehicle> {
     const raw = await fetchApi<Vehicle>(`/api/vehicles/${id}`);
+    const toStr = (v: unknown) => (v != null ? String(v) : '');
+    const images = Array.isArray(raw.images) ? raw.images : [];
+    const tags = Array.isArray(raw.tags) ? raw.tags : [];
+    const yearVal = raw.year;
+    const year =
+      typeof yearVal === 'number' && !Number.isNaN(yearVal)
+        ? yearVal
+        : yearVal instanceof Date
+          ? yearVal.getFullYear()
+          : parseInt(String(yearVal ?? ''), 10) || new Date().getFullYear();
     return {
       ...raw,
-      images: Array.isArray(raw.images) ? raw.images : [],
-      tags: Array.isArray(raw.tags) ? raw.tags : [],
+      id: toStr(raw.id) || id,
+      title: toStr(raw.title),
+      year,
+      mileage: toStr(raw.mileage),
+      price: toStr(raw.price),
+      priceSubtext: raw.priceSubtext != null ? toStr(raw.priceSubtext) : null,
+      fuelType: raw.fuelType != null ? toStr(raw.fuelType) : null,
+      seats: raw.seats != null ? toStr(raw.seats) : null,
+      description: raw.description != null ? toStr(raw.description) : null,
+      images: images.map((img) => (typeof img === 'string' ? img : toStr(img))),
+      tags: tags.map((t) => (typeof t === 'string' ? t : (typeof (t as { name?: string })?.name === 'string' ? (t as { name: string }).name : toStr(t)))),
+      createdAt: toStr(raw.createdAt),
+      updatedAt: toStr(raw.updatedAt),
     };
   },
 

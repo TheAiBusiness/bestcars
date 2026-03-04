@@ -294,7 +294,9 @@ export function VehicleDetailPage() {
               mileage={safeMileage}
               price={safePrice}
               priceSubtext={safePriceSubtext}
-              tags={Array.isArray(vehicle.tags) ? vehicle.tags : []}
+              tags={(Array.isArray(vehicle.tags) ? vehicle.tags : []).map((t) =>
+                typeof t === 'string' ? t : String(t ?? '')
+              )}
               onRequestTestDrive={() => {
                 if (!hasTrackedClick.current) {
                   hasTrackedClick.current = true;

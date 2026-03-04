@@ -49,8 +49,8 @@ export function SpecificationsSection({ specifications }: SpecificationsSectionP
         const icon = categoryIconMap[category] || Settings;
         formatted[category] = items.map((item) => ({
           icon,
-          key: item.key,
-          value: item.value,
+          key: typeof item?.key === 'string' ? item.key : String(item?.key ?? ''),
+          value: typeof item?.value === 'string' ? item.value : String(item?.value ?? ''),
         }));
       }
     }
