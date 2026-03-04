@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { api, getSceneBackgroundUrl, type Scene, sceneHotspots } from "../../services/api.js";
+import { api, getSceneBackgroundUrl, getScenesForExperiencia, type Scene, sceneHotspots } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import SceneHotspots from "../components/SceneHotspots";
 import NextSceneButton from "../components/NextSceneButton";
@@ -9,14 +9,6 @@ import { BreadcrumbJsonLd } from "../components/BreadcrumbJsonLd";
 // @ts-expect-error - Imagen con espacios en el nombre (fallback de fondo)
 import fallbackImage from "../../assets/Ilustración_sin_título 103.jpg";
 import "./DynamicScenePage.css";
-
-/** Excluye la escena del Garaje del ciclo de /experiencia. Misma lista para navegación e imagen. */
-function scenesForExperiencia(list: Scene[]): Scene[] {
-  const filtered = (list ?? []).filter(
-    (s) => s?.name && !/garaje|garage/i.test(s.name.trim())
-  );
-  return filtered.length > 0 ? filtered : Array.isArray(list) ? list : [];
-}
 
 export default function DynamicScenePage() {
   const [searchParams] = useSearchParams();
@@ -46,7 +38,7 @@ export default function DynamicScenePage() {
       .then(([list, vList]) => {
         if (cancelled) return;
         const rawList = Array.isArray(list) ? (list as Scene[]) : [];
-        const sceneList = scenesForExperiencia(rawList);
+        const sceneList = getScenesForExperiencia(rawList);
         setScenes(sceneList);
         setVehicles(Array.isArray(vList) ? vList : []);
 
@@ -89,7 +81,7 @@ export default function DynamicScenePage() {
 
   const goToScene = useCallback((idx: number) => {
     if (idx < 0 || idx >= scenes.length) {
-      navigate("/garage");
+      navigate("/");
     } else {
       navigate(`/experiencia?index=${idx}`);
     }
@@ -113,13 +105,19 @@ export default function DynamicScenePage() {
     if (dt > SWIPE_MAX_TIME || Math.abs(dy) > Math.abs(dx)) return;
 
     if (dx < -SWIPE_MIN) {
-      const next = (currentIndex + 1) % scenes.length;
-      goToScene(next);
+      if (currentIndex === scenes.length - 1) {
+        navigate("/");
+      } else {
+        goToScene(currentIndex + 1);
+      }
     } else if (dx > SWIPE_MIN) {
-      const prev = (currentIndex - 1 + scenes.length) % scenes.length;
-      goToScene(prev);
+      if (currentIndex === 0) {
+        navigate("/");
+      } else {
+        goToScene(currentIndex - 1);
+      }
     }
-  }, [currentIndex, scenes.length, goToScene]);
+  }, [currentIndex, scenes.length, goToScene, navigate]);
 
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const hotspots = sceneHotspots(activeScene);

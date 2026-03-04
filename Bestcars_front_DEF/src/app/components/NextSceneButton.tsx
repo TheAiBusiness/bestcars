@@ -8,6 +8,8 @@ interface NextSceneButtonProps {
   isStockMenuOpen?: boolean;
   isTermsOpen?: boolean;
   fromGarage?: boolean;
+  /** true cuando se muestra en HomePage (/) — ciclo abierto: prev=última escena, next=primera */
+  fromHome?: boolean;
 }
 
 function ChevronLeft() {
@@ -32,6 +34,7 @@ export function NextSceneButton({
   isStockMenuOpen = false,
   isTermsOpen = false,
   fromGarage = false,
+  fromHome = false,
 }: NextSceneButtonProps) {
   if (isStockMenuOpen || isTermsOpen) return null;
 
@@ -45,18 +48,33 @@ export function NextSceneButton({
     );
   }
 
+  // HomePage: ciclo abierto — prev = última escena, next = primera escena
+  if (fromHome) {
+    if (totalScenes < 1) return null;
+    const lastIndex = totalScenes - 1;
+    return (
+      <>
+        <Link to={`/experiencia?index=${lastIndex}`} className="scene-nav scene-nav--left" aria-label="Última escena">
+          <ChevronLeft />
+          <span className="scene-nav__label">Última escena</span>
+        </Link>
+        <Link to="/experiencia?index=0" className="scene-nav scene-nav--right" aria-label="Ver experiencia">
+          <span className="scene-nav__label">Ver experiencia</span>
+          <ChevronRight />
+        </Link>
+      </>
+    );
+  }
+
   if (totalScenes < 2) return null;
 
-  // Navegación circular: Escena 1 ↔ Escena 2 ↔ ... ↔ Última ↔ Escena 1
-  // El Garaje NUNCA forma parte del ciclo de escenas
-  const prevIndex = (sceneIndex - 1 + totalScenes) % totalScenes;
-  const nextIndex = (sceneIndex + 1) % totalScenes;
-
-  const prevDest = `/experiencia?index=${prevIndex}`;
-  const nextDest = `/experiencia?index=${nextIndex}`;
-
-  const prevLabel = `Escena ${prevIndex + 1}`;
-  const nextLabel = `Escena ${nextIndex + 1}`;
+  // /experiencia: ciclo abierto con HomePage — desde index 0 prev → /, desde última next → /
+  const prevIndex = sceneIndex - 1;
+  const nextIndex = sceneIndex + 1;
+  const prevDest = prevIndex < 0 ? "/" : `/experiencia?index=${prevIndex}`;
+  const nextDest = nextIndex >= totalScenes ? "/" : `/experiencia?index=${nextIndex}`;
+  const prevLabel = prevIndex < 0 ? "Inicio" : `Escena ${prevIndex + 1}`;
+  const nextLabel = nextIndex >= totalScenes ? "Inicio" : `Escena ${nextIndex + 1}`;
 
   return (
     <>

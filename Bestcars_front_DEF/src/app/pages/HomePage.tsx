@@ -8,7 +8,7 @@ import { NextSceneButton } from "../components/NextSceneButton";
 import { StockMenu } from "../components/StockMenu";
 import { TermsAndConditions } from "../components/TermsAndConditions";
 import { BreadcrumbJsonLd } from "../components/BreadcrumbJsonLd";
-import { api, sceneHotspots, type Scene } from "../../services/api.js";
+import { api, getScenesForExperiencia, sceneHotspots, type Scene } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import "./HomePage.css";
 

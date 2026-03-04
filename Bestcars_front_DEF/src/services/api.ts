@@ -196,6 +196,13 @@ export interface ScenePosition {
   updatedAt: string;
 }
 
+/** Escenas para /experiencia: excluye la del Garaje. Misma lista para navegación e imagen. */
+export function getScenesForExperiencia(list: Scene[]): Scene[] {
+  const arr = Array.isArray(list) ? list : [];
+  const filtered = arr.filter((s) => s?.name && !/garaje|garage/i.test(s.name.trim()));
+  return filtered.length > 0 ? filtered : arr;
+}
+
 /** Convierte scene.positions (legacy) a Hotspot[] si no hay scene.hotspots */
 export function sceneHotspots(scene: Scene | null | undefined): Hotspot[] {
   if (!scene) return [];
