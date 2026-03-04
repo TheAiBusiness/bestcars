@@ -67,7 +67,7 @@ export function HomePage() {
           setScenesCount(forExperiencia.length);
           setVehicles(Array.isArray(vList) ? vList : []);
 
-          const principal = scenes[0] ?? null;
+          const principal = forExperiencia[0] ?? null;
           if (!principal) {
             setHotspots([]);
             setActiveSceneIndex(0);
