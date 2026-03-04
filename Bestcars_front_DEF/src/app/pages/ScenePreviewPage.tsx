@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { type Scene, sceneHotspots } from "../../services/api.js";
 import type { Vehicle } from "../../types/vehicle.js";
 import SceneHotspots from "../components/SceneHotspots";
-import homeImage from "../../assets/Bestcars-home.png";
+const HERO_FALLBACK = "/hero/hero-desktop.jpg";
 
 interface SceneState {
   scene: Scene | null;
@@ -55,7 +55,7 @@ export default function ScenePreviewPage() {
   const background =
     scene?.backgroundUrl && scene.backgroundUrl.trim().length > 0
       ? scene.backgroundUrl
-      : homeImage;
+      : HERO_FALLBACK;
 
   if (!scene) {
     return (
@@ -66,7 +66,7 @@ export default function ScenePreviewPage() {
   }
 
   const BASE_URL = "https://bestcarsiberica.com";
-  const ogImage = background.startsWith("http") ? background : new URL(homeImage, BASE_URL).href;
+  const ogImage = background.startsWith("http") ? background : `${BASE_URL}${background}`;
 
   return (
     <div className="w-full h-screen bg-black overflow-hidden">

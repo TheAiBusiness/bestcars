@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { Loader2 } from "lucide-react";
-import houseImage from "../../assets/Bestcars-home.png";
 import CarHotspots from "../components/CarHotspots";
 import GarageArrow from "../components/GarageArrow";
 import { NextSceneButton } from "../components/NextSceneButton";
@@ -36,7 +35,7 @@ const organizationLocalBusinessSchema = {
   telephone: "+34659164104",
   openingHours: "Mo-Sa 10:00-20:00",
   sameAs: ["https://www.instagram.com/bestcarsiberica/"],
-  image: new URL(houseImage, BASE_URL).href,
+  image: `${BASE_URL}/hero/hero-desktop.jpg`,
 };
 
 // ========== ADJUST MOBILE START POSITION ==========
@@ -114,13 +113,13 @@ export function HomePage() {
         <meta name="description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
         <meta property="og:title" content="Coches de lujo en Madrid | Audi, BMW, Porsche | Best Cars Ibérica" />
         <meta property="og:description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
-        <meta property="og:image" content={new URL(houseImage, BASE_URL).href} />
+        <meta property="og:image" content={`${BASE_URL}/hero/hero-desktop.jpg`} />
         <meta property="og:url" content={`${BASE_URL}/`} />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Coches de lujo en Madrid | Audi, BMW, Porsche | Best Cars Ibérica" />
         <meta name="twitter:description" content="Compra y venta de vehículos premium en Madrid. Audi, BMW, Porsche. Catálogo exclusivo, asesoramiento personalizado. Visita nuestro showroom." />
-        <meta name="twitter:image" content={new URL(houseImage, BASE_URL).href} />
+        <meta name="twitter:image" content={`${BASE_URL}/hero/hero-desktop.jpg`} />
         <script type="application/ld+json">
           {JSON.stringify(organizationLocalBusinessSchema)}
         </script>
@@ -142,21 +141,36 @@ export function HomePage() {
           </div>
         )}
 
-        <img 
-          src={houseImage} 
-          alt="Luxurious modern house with architectural lighting" 
-          className={`home-image ${allImagesLoaded ? 'loaded' : ''}`}
-          width={5803}
-          height={3264}
-          loading="eager"
-          fetchPriority="high"
-          decoding="async"
-          onLoad={() => setHouseImageLoaded(true)}
-          onError={() => {
-            setHouseImageError(true);
-            setHouseImageLoaded(true);
-          }}
-        />
+        <picture>
+          {/* AVIF (mejor compresión) */}
+          <source
+            type="image/avif"
+            srcSet="/hero/hero-desktop.avif 1920w, /hero/hero-mobile.avif 768w"
+            sizes="100vw"
+          />
+          {/* WebP (amplio soporte) */}
+          <source
+            type="image/webp"
+            srcSet="/hero/hero-desktop.webp 1920w, /hero/hero-mobile.webp 768w"
+            sizes="100vw"
+          />
+          {/* Fallback JPEG */}
+          <img
+            src="/hero/hero-desktop.jpg"
+            alt="Luxurious modern house with architectural lighting"
+            className={`home-image ${allImagesLoaded ? 'loaded' : ''}`}
+            width={1920}
+            height={1080}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            onLoad={() => setHouseImageLoaded(true)}
+            onError={() => {
+              setHouseImageError(true);
+              setHouseImageLoaded(true);
+            }}
+          />
+        </picture>
         {allImagesLoaded && (
           <>
             <CarHotspots hotspots={hotspots} vehicles={vehicles} />

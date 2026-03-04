@@ -4,14 +4,15 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "build:prerender": "vite build && node scripts/prerender.mjs",
+    "build": "node scripts/optimize-hero.mjs && vite build",
+    "build:prerender": "node scripts/optimize-hero.mjs && vite build && node scripts/prerender.mjs",
     "dev": "vite",
     "preview": "vite preview --port 5173",
     "serve": "npx serve -s dist -p 5173",
     "start": "npx serve -s dist -l tcp://0.0.0.0:${PORT:-5173}",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "seo:audit": "node scripts/lighthouse-audit.js"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
@@ -78,10 +79,12 @@
     "@eslint/js": "^9.17.0",
     "@tailwindcss/vite": "4.1.12",
     "@vitejs/plugin-react": "4.7.0",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "lighthouse": "^12.8.2",
     "sharp": "^0.34.5",
     "svgo": "^4.0.0",
     "tailwindcss": "4.1.12",
