@@ -87,8 +87,29 @@ export const api = {
         : yearVal instanceof Date
           ? yearVal.getFullYear()
           : parseInt(String(yearVal ?? ''), 10) || new Date().getFullYear();
+
+    // Normalizar specifications para evitar objetos complejos en JSX
+    const specifications = (() => {
+      if (!raw.specifications || typeof raw.specifications !== 'object') return null;
+      const specs = raw.specifications as Record<string, unknown>;
+      const normalized: Record<string, any> = {};
+      for (const key of Object.keys(specs)) {
+        const val = specs[key];
+        if (!Array.isArray(val)) continue;
+        normalized[key] = val.map((item: unknown) => {
+          if (typeof item === 'object' && item != null && 'key' in item && 'value' in item) {
+            return {
+              key: toStr((item as { key?: unknown }).key),
+              value: toStr((item as { value?: unknown }).value),
+            };
+          }
+          return { key: '', value: '' };
+        });
+      }
+      return Object.keys(normalized).length > 0 ? normalized : null;
+    })();
+
     return {
-      ...raw,
       id: toStr(raw.id) || id,
       title: toStr(raw.title),
       year,
@@ -100,6 +121,8 @@ export const api = {
       description: raw.description != null ? toStr(raw.description) : null,
       images: images.map((img) => (typeof img === 'string' ? img : toStr(img))),
       tags: tags.map((t) => (typeof t === 'string' ? t : (typeof (t as { name?: string })?.name === 'string' ? (t as { name: string }).name : toStr(t)))),
+      specifications: specifications,
+      status: typeof raw.status === 'string' ? raw.status : undefined,
       createdAt: toStr(raw.createdAt),
       updatedAt: toStr(raw.updatedAt),
     };
