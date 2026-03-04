@@ -54,6 +54,7 @@ export function HomePage() {
   const [hotspots, setHotspots] = useState<ReturnType<typeof sceneHotspots>>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const pageRef = useRef<HTMLDivElement>(null);
+  const heroImgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +88,23 @@ export function HomePage() {
     return () => {
       cancelled = true;
       document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
+  // Si la imagen ya está en caché, onLoad puede no dispararse. Marcar como cargada si img.complete.
+  useEffect(() => {
+    const img = heroImgRef.current;
+    if (!img) return;
+    const onLoaded = () => setHouseImageLoaded(true);
+    if (img.complete && img.naturalWidth > 0) {
+      onLoaded();
+      return;
+    }
+    img.addEventListener("load", onLoaded);
+    const fallback = setTimeout(onLoaded, 3000);
+    return () => {
+      img.removeEventListener("load", onLoaded);
+      clearTimeout(fallback);
     };
   }, []);
 
@@ -156,6 +174,7 @@ export function HomePage() {
           />
           {/* Fallback JPEG */}
           <img
+            ref={heroImgRef}
             src="/hero/hero-desktop.jpg"
             alt="Luxurious modern house with architectural lighting"
             className={`home-image ${allImagesLoaded ? 'loaded' : ''}`}
