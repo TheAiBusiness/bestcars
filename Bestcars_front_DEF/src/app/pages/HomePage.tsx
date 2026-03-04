@@ -63,7 +63,8 @@ export function HomePage() {
         .then(([list, vList]) => {
           if (cancelled) return;
           const scenes = Array.isArray(list) ? (list as Scene[]) : [];
-          setScenesCount(scenes.length);
+          const forExperiencia = getScenesForExperiencia(scenes);
+          setScenesCount(forExperiencia.length);
           setVehicles(Array.isArray(vList) ? vList : []);
 
           const principal = scenes[0] ?? null;
@@ -201,7 +202,7 @@ export function HomePage() {
       {allImagesLoaded && (
         <>
           <NextSceneButton
-            sceneIndex={activeSceneIndex}
+            fromHome
             totalScenes={scenesCount}
             isStockMenuOpen={isStockMenuOpen}
             isTermsOpen={isTermsOpen}
