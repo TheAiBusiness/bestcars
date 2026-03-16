@@ -246,15 +246,11 @@ export interface ScenePosition {
   updatedAt: string;
 }
 
-/** Escenas para /experiencia: solo las creadas en el editor (no la escena activa del home/garaje). */
+/** Escenas para /experiencia: excluye la del Garaje. Misma lista para navegación e imagen. */
 export function getScenesForExperiencia(list: Scene[]): Scene[] {
   const arr = Array.isArray(list) ? list : [];
-  return arr.filter((s) => {
-    if (!s?.name?.trim()) return false;
-    if (s.isActive === true) return false;
-    if (/garaje|garage/i.test(s.name.trim())) return false;
-    return true;
-  });
+  const filtered = arr.filter((s) => s?.name && !/garaje|garage/i.test(s.name.trim()));
+  return filtered.length > 0 ? filtered : arr;
 }
 
 /** Convierte scene.positions (legacy) a Hotspot[] si no hay scene.hotspots */
