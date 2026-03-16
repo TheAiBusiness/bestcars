@@ -59,15 +59,15 @@ export function HomePage() {
   useEffect(() => {
     let cancelled = false;
     const load = () => {
-      Promise.all([api.getScenes(), api.getAllVehicles()])
-        .then(([list, vList]) => {
+      Promise.all([api.getScenes(), api.getActiveScene(), api.getAllVehicles()])
+        .then(([list, active, vList]) => {
           if (cancelled) return;
           const scenes = Array.isArray(list) ? (list as Scene[]) : [];
           const forExperiencia = getScenesForExperiencia(scenes);
           setScenesCount(forExperiencia.length);
           setVehicles(Array.isArray(vList) ? vList : []);
 
-          const principal = forExperiencia[0] ?? null;
+          const principal = active ?? null;
           if (!principal) {
             setHotspots([]);
             setActiveSceneIndex(0);

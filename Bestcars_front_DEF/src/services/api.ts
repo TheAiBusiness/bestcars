@@ -48,8 +48,14 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      throw new ApiError(response.status, errorData.error || `HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      const err = errorData?.error;
+      const message =
+        (typeof err === 'object' && err?.message) ? String(err.message)
+          : typeof err === 'string' ? err
+          : typeof errorData?.message === 'string' ? errorData.message
+          : `Error ${response.status}`;
+      throw new ApiError(response.status, message);
     }
 
     return await response.json();
@@ -240,11 +246,15 @@ export interface ScenePosition {
   updatedAt: string;
 }
 
-/** Escenas para /experiencia: excluye la del Garaje. Misma lista para navegación e imagen. */
+/** Escenas para /experiencia: solo las creadas en el editor (no la escena activa del home/garaje). */
 export function getScenesForExperiencia(list: Scene[]): Scene[] {
   const arr = Array.isArray(list) ? list : [];
-  const filtered = arr.filter((s) => s?.name && !/garaje|garage/i.test(s.name.trim()));
-  return filtered.length > 0 ? filtered : arr;
+  return arr.filter((s) => {
+    if (!s?.name?.trim()) return false;
+    if (s.isActive === true) return false;
+    if (/garaje|garage/i.test(s.name.trim())) return false;
+    return true;
+  });
 }
 
 /** Convierte scene.positions (legacy) a Hotspot[] si no hay scene.hotspots */
