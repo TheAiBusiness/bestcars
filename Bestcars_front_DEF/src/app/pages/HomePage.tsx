@@ -63,18 +63,18 @@ export function HomePage() {
         .then(([list, activeScene, vList]) => {
           if (cancelled) return;
           const scenes = Array.isArray(list) ? (list as Scene[]) : [];
-          const forExperiencia = getScenesForExperiencia(scenes);
+          const effectivePrincipal = activeScene ?? scenes[0] ?? null;
+          const forExperiencia = getScenesForExperiencia(scenes, effectivePrincipal?.id);
           setScenesCount(forExperiencia.length);
           setVehicles(Array.isArray(vList) ? vList : []);
 
-          const principal = activeScene ?? null;
-          if (!principal) {
+          if (!effectivePrincipal) {
             setHotspots([]);
             setActiveSceneIndex(0);
             return;
           }
           setActiveSceneIndex(0);
-          const h = sceneHotspots(principal);
+          const h = sceneHotspots(effectivePrincipal);
           setHotspots(Array.isArray(h) ? h : []);
         })
         .catch(() => {

@@ -247,17 +247,19 @@ export interface ScenePosition {
 }
 
 /**
- * Escenas para /experiencia: solo las del editor. La escena principal NUNCA entra aquí.
- * - Excluye isActive === true (escena principal de Home).
- * - Excluye nombre garaje|garage.
- * - Excluye sin backgroundUrl válido.
- * - Sin fallback: si no hay ninguna válida, devuelve [].
+ * Escenas para /experiencia: solo las del editor. La escena principal efectiva NUNCA entra aquí.
+ * @param list - Lista completa de escenas
+ * @param principalSceneId - Id de la escena principal efectiva (Home); si se pasa, se excluye por id
+ * - Excluye la escena con id === principalSceneId
+ * - Excluye nombre garaje|garage
+ * - Excluye sin backgroundUrl válido
+ * - Sin fallback: si no hay ninguna válida, devuelve []
  */
-export function getScenesForExperiencia(list: Scene[]): Scene[] {
+export function getScenesForExperiencia(list: Scene[], principalSceneId?: string | null): Scene[] {
   const arr = Array.isArray(list) ? list : [];
   return arr.filter((s) => {
     if (!s?.name?.trim()) return false;
-    if (s.isActive === true) return false;
+    if (principalSceneId != null && s.id === principalSceneId) return false;
     if (/garaje|garage/i.test(s.name.trim())) return false;
     if (!s.backgroundUrl?.trim()) return false;
     return true;

@@ -34,11 +34,12 @@ export default function DynamicScenePage() {
     let cancelled = false;
     setLoading(true);
     setError(false);
-    Promise.all([api.getScenes(), api.getAllVehicles()])
-      .then(([list, vList]) => {
+    Promise.all([api.getScenes(), api.getActiveScene(), api.getAllVehicles()])
+      .then(([list, activeScene, vList]) => {
         if (cancelled) return;
         const rawList = Array.isArray(list) ? (list as Scene[]) : [];
-        const sceneList = getScenesForExperiencia(rawList);
+        const effectivePrincipal = activeScene ?? rawList[0] ?? null;
+        const sceneList = getScenesForExperiencia(rawList, effectivePrincipal?.id);
         setScenes(sceneList);
         setVehicles(Array.isArray(vList) ? vList : []);
 

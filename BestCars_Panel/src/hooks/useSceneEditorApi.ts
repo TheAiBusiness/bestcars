@@ -65,7 +65,7 @@ export function useSceneEditorApi(
       .then(([scenes, activeScene]) => {
         if (cancelled) return;
         const editorScenes = (scenes ?? []).map(apiSceneToEditorScene);
-        const webPrincipalId = activeScene?.id ?? null;
+        const webPrincipalId = activeScene?.id ?? editorScenes[0]?.id ?? null;
         const defaultSelectedId = webPrincipalId ?? editorScenes[0]?.id ?? null;
         setStorage((prev) => ({
           ...prev,
@@ -223,8 +223,8 @@ export function useSceneEditorApi(
     if (!apiMode || !isAuthenticated) return;
     try {
       const [scenes, activeScene] = await Promise.all([getScenes(), getActiveScene()]);
-      const editorScenes = scenes.map(apiSceneToEditorScene);
-      const webPrincipalId = activeScene?.id ?? null;
+      const editorScenes = (scenes ?? []).map(apiSceneToEditorScene);
+      const webPrincipalId = activeScene?.id ?? editorScenes[0]?.id ?? null;
       setStorage((prev) => ({
         ...prev,
         scenes: editorScenes,
