@@ -13,7 +13,7 @@ export function Footer() {
           <div>
             <h3 className="text-lg font-bold text-white mb-4">Best Cars Ibérica</h3>
             <p className="text-sm text-white/60 leading-relaxed">
-              Concesionario de vehículos de lujo en Ibiza. Experiencia premium en compra y venta de coches exclusivos.
+              Concesionario de vehículos de lujo en Madrid. Experiencia premium en compra y venta de coches exclusivos.
             </p>
           </div>
 
@@ -35,12 +35,12 @@ export function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-white/40 flex-shrink-0" aria-hidden />
-                <span>Ibiza, Islas Baleares</span>
+                <span>Madrid</span>
               </li>
               <li className="flex items-center gap-2">
                 <Instagram className="w-4 h-4 text-white/40 flex-shrink-0" aria-hidden />
-                <a href="https://instagram.com/bestcars" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
-                  @bestcars
+                <a href="https://www.instagram.com/bestcarsiberica/" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                  @bestcarsiberica
                 </a>
               </li>
             </ul>
