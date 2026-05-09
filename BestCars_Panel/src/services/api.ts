@@ -144,10 +144,9 @@ export async function deleteVehicle(id: string): Promise<void> {
   return fetchApi<void>(`/vehicles/${id}`, { method: 'DELETE' });
 }
 
-/** Subir imagen de vehículo a Supabase Storage (multipart, campo "image"). No usar fetchApi (evita Content-Type JSON). */
-export async function uploadVehicleImage(file: File): Promise<{ url: string; path: string }> {
+async function uploadFile(endpoint: string, file: File, fieldName = 'image'): Promise<{ url: string; path: string }> {
   const formData = new FormData();
-  formData.append('image', file);
+  formData.append(fieldName, file);
 
   const headers: HeadersInit = {};
   const token = getStoredToken();
@@ -155,7 +154,7 @@ export async function uploadVehicleImage(file: File): Promise<{ url: string; pat
 
   let res: Response;
   try {
-    res = await fetch(`${API}/vehicles/upload-image`, {
+    res = await fetch(`${API}${endpoint}`, {
       method: 'POST',
       body: formData,
       headers,
@@ -193,53 +192,12 @@ export async function uploadVehicleImage(file: File): Promise<{ url: string; pat
   return JSON.parse(text) as { url: string; path: string };
 }
 
-/** Subir fondo de escena a Storage vía backend (multipart, campo "image"). Sin Content-Type manual. */
-export async function uploadSceneBackground(file: File): Promise<{ url: string; path: string }> {
-  const formData = new FormData();
-  formData.append('image', file);
+export function uploadVehicleImage(file: File) {
+  return uploadFile('/vehicles/upload-image', file);
+}
 
-  const headers: HeadersInit = {};
-  const token = getStoredToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  let res: Response;
-  try {
-    res = await fetch(`${API}/scenes/upload-background`, {
-      method: 'POST',
-      body: formData,
-      headers,
-    });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Network error';
-    throw new Error(msg === 'Failed to fetch' ? 'No se pudo conectar al servidor. Comprueba que el backend esté en marcha.' : msg);
-  }
-
-  if (res.status === 401) {
-    setStoredToken(null);
-    window.dispatchEvent(new CustomEvent('auth:session-expired'));
-    throw new Error('Sesión expirada. Inicia sesión de nuevo.');
-  }
-
-  const text = await res.text();
-  if (!res.ok) {
-    let parsed: any = null;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      // ignorar
-    }
-    const msg =
-      typeof parsed?.error === 'string'
-        ? parsed.error
-        : typeof parsed?.error?.message === 'string'
-          ? parsed.error.message
-          : typeof parsed?.message === 'string'
-            ? parsed.message
-            : text || `Error ${res.status}`;
-    throw new Error(msg);
-  }
-
-  return JSON.parse(text) as { url: string; path: string };
+export function uploadSceneBackground(file: File) {
+  return uploadFile('/scenes/upload-background', file);
 }
 
 /** Obtener contactos (leads de formulario) */

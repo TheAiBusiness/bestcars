@@ -50,11 +50,11 @@ export function DashboardLayout({ children, activeSection, onSectionChange, onLo
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 space-y-2">
+          <nav className="flex-1 space-y-2" role="navigation" aria-label="Panel principal">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
-              
+
               return (
                 <motion.button
                   key={item.id}
@@ -62,6 +62,8 @@ export function DashboardLayout({ children, activeSection, onSectionChange, onLo
                   className="w-full relative group"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={item.label}
                 >
                   {/*
                     Indicador de sección activa.

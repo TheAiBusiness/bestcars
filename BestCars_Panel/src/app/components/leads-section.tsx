@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { Mail, Phone, Calendar, User, MessageSquare, Inbox, Trash2, Car } from 'lucide-react';
 import { Lead, Vehicle } from '../data/mock-data';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ConfirmDialog } from './confirm-dialog';
 
 interface LeadsSectionProps {
   leads: Lead[];
@@ -18,6 +19,7 @@ interface LeadsSectionProps {
 export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: LeadsSectionProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterVehicle, setFilterVehicle] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Opciones de filtro por estado del lead
   const statusOptions = [
@@ -177,10 +179,10 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
               transition={{ delay: index * 0.05 }}
               className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl overflow-hidden"
             >
-              <div className="p-6">
-                <div className="flex gap-6">
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6">
                   {/* Vehicle Image o placeholder si vehículo eliminado */}
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 relative">
+                  <div className="w-full h-32 md:w-32 md:h-32 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 relative">
                     {vehicle ? (
                       <ImageWithFallback
                         src={vehicle.image}
@@ -260,7 +262,7 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-row md:flex-col gap-2 mt-2 md:mt-0">
                     <select
                       value={lead.status}
                       onChange={(e) =>
@@ -277,7 +279,8 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
                     {onLeadDelete && (
                       <button
                         type="button"
-                        onClick={() => window.confirm('¿Eliminar este lead?') && onLeadDelete(lead.id)}
+                        onClick={() => setDeleteTarget({ id: lead.id, name: lead.name })}
+                        aria-label={`Eliminar lead ${lead.name}`}
                         className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -309,6 +312,19 @@ export function LeadsSection({ leads, vehicles, onLeadUpdate, onLeadDelete }: Le
           </p>
         </motion.div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Eliminar lead "${deleteTarget?.name ?? ""}"`}
+        description="Esta accion no se puede deshacer."
+        confirmLabel="Eliminar"
+        variant="danger"
+        onConfirm={() => {
+          if (deleteTarget && onLeadDelete) onLeadDelete(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

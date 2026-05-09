@@ -90,6 +90,8 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ scale: 1.02 }}
       className="relative group cursor-move"
+      role="listitem"
+      aria-label={`${vehicle.brand} ${vehicle.model} - ${vehicle.price.toLocaleString()}€`}
     >
       {/* Glassmorphism Card */}
       <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl overflow-hidden">
@@ -182,6 +184,7 @@ function VehicleCard({ vehicle, index, onVehicleClick, onPriceUpdate, moveCard }
                   <button
                     onClick={() => setIsEditingPrice(true)}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-white/10"
+                    aria-label={`Editar precio de ${mainTitle}`}
                   >
                     <Pencil className="w-3 h-3 text-white/50" />
                   </button>

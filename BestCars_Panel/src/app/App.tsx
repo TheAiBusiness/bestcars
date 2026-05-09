@@ -18,6 +18,9 @@ import { LoginPage } from "./pages/LoginPage";
 import { Vehicle, Lead } from "./data/mock-data";
 import { useAuth } from "../contexts/AuthContext";
 import { usePanelData } from "../hooks/usePanelData";
+import { StockSkeleton } from "./components/stock-skeleton";
+import { LeadsSkeleton } from "./components/leads-skeleton";
+import { ErrorBoundary } from "./components/error-boundary";
 
 type SectionId = "stock" | "leads" | "stats" | "scene" | "settings" | "webpreview";
 
@@ -144,42 +147,42 @@ export default function App() {
               : "flex-1 overflow-y-auto"
           }
         >
-          {loading && (
-            <div className="p-8 text-center text-white/60">Cargando datos...</div>
-          )}
-          {!loading && activeSection === "stock" && (
-            <StockSection
-              vehicles={filteredVehicles}
-              onVehicleClick={handleVehicleClick}
-              onReorder={handleVehicleReorder}
-              onPriceUpdate={handlePriceUpdate}
-              onCreateVehicle={handleCreateVehicle}
-            />
-          )}
-          {!loading && activeSection === "leads" && (
-            <LeadsSection
-              leads={filteredLeads}
-              vehicles={vehicles}
-              onLeadUpdate={handleLeadUpdate}
-              onLeadDelete={handleLeadDelete}
-            />
-          )}
-          {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
-          {activeSection === "scene" && (
-            <SceneEditorSection
-              vehicles={vehicles}
-              searchQuery={searchQuery}
-              apiMode={apiMode}
-              isAuthenticated={!!token}
-            />
-          )}
-          {activeSection === "settings" && <SettingsSection />}
-          {!loading && activeSection === "webpreview" && (
-            <WebPreviewSection
-              vehicles={filteredVehicles}
-              onVehiclePreview={handleWebPreview}
-            />
-          )}
+          {loading && (activeSection === "stock" ? <StockSkeleton /> : activeSection === "leads" ? <LeadsSkeleton /> : <StockSkeleton />)}
+          <ErrorBoundary key={activeSection}>
+            {!loading && activeSection === "stock" && (
+              <StockSection
+                vehicles={filteredVehicles}
+                onVehicleClick={handleVehicleClick}
+                onReorder={handleVehicleReorder}
+                onPriceUpdate={handlePriceUpdate}
+                onCreateVehicle={handleCreateVehicle}
+              />
+            )}
+            {!loading && activeSection === "leads" && (
+              <LeadsSection
+                leads={filteredLeads}
+                vehicles={vehicles}
+                onLeadUpdate={handleLeadUpdate}
+                onLeadDelete={handleLeadDelete}
+              />
+            )}
+            {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
+            {activeSection === "scene" && (
+              <SceneEditorSection
+                vehicles={vehicles}
+                searchQuery={searchQuery}
+                apiMode={apiMode}
+                isAuthenticated={!!token}
+              />
+            )}
+            {activeSection === "settings" && <SettingsSection />}
+            {!loading && activeSection === "webpreview" && (
+              <WebPreviewSection
+                vehicles={filteredVehicles}
+                onVehiclePreview={handleWebPreview}
+              />
+            )}
+          </ErrorBoundary>
         </div>
       </DashboardLayout>
 

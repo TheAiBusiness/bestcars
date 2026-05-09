@@ -6,6 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Copy, Trash2, Save, RotateCcw, Image as ImageIcon, Lock, MapPin } from "lucide-react";
+import { ConfirmDialog } from "./confirm-dialog";
 
 import { Vehicle } from "../data/mock-data";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
@@ -78,6 +79,7 @@ export function SceneEditorSection({
 
   const [addHotspotMode, setAddHotspotMode] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ title: string; description?: string; onConfirm: () => void } | null>(null);
   const [publishLoading, setPublishLoading] = useState(false);
   const [previewConnected, setPreviewConnected] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -137,7 +139,17 @@ export function SceneEditorSection({
   );
 
   const selectScene = (sceneId: string) => {
-    if (isDirty && !window.confirm("Tienes cambios sin guardar. ¿Descartar?")) return;
+    if (isDirty) {
+      setConfirmAction({
+        title: "Cambios sin guardar",
+        description: "Tienes cambios sin guardar. ¿Descartar?",
+        onConfirm: () => {
+          setStorage((prev) => ({ ...prev, activeSceneId: sceneId, activeHotspotId: null }));
+          setIsDirty(false);
+        },
+      });
+      return;
+    }
     setStorage((prev) => ({ ...prev, activeSceneId: sceneId, activeHotspotId: null }));
     setIsDirty(false);
   };
@@ -183,7 +195,30 @@ export function SceneEditorSection({
       return;
     }
     // Modo local sin API: duplicación en memoria
-    if (isDirty && !window.confirm("Tienes cambios sin guardar. ¿Descartar antes de duplicar?")) return;
+    if (isDirty) {
+      setConfirmAction({
+        title: "Cambios sin guardar",
+        description: "Tienes cambios sin guardar. ¿Descartar antes de duplicar?",
+        onConfirm: () => {
+          const copy: Scene = {
+            ...activeScene,
+            id: `scene_${Date.now()}`,
+            name: `Copia de ${activeScene.name}`,
+            hotspots: activeHotspots.map((h) => ({ ...h, id: generateHotspotId() })),
+            createdAt: nowIso(),
+            updatedAt: nowIso(),
+          };
+          setStorage((prev) => ({
+            ...prev,
+            scenes: [...prev.scenes, copy],
+            activeSceneId: copy.id,
+            activeHotspotId: null,
+          }));
+          setIsDirty(false);
+        },
+      });
+      return;
+    }
     const copy: Scene = {
       ...activeScene,
       id: `scene_${Date.now()}`,
@@ -206,8 +241,11 @@ export function SceneEditorSection({
       toast.error("No se puede eliminar la escena visible en la web.");
       return;
     }
-    if (!window.confirm(`¿Eliminar la escena "${activeScene.name}"?`)) return;
-    deleteSceneApi(activeScene.id);
+    setConfirmAction({
+      title: `Eliminar escena "${activeScene.name}"`,
+      description: "Esta accion no se puede deshacer.",
+      onConfirm: () => deleteSceneApi(activeScene.id),
+    });
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -286,11 +324,16 @@ export function SceneEditorSection({
   };
 
   const removeHotspot = (h: Hotspot) => {
-    if (!window.confirm(`¿Eliminar hotspot de este vehículo?`)) return;
-    updateSceneHotspots((prev) => prev.filter((p) => p.id !== h.id));
-    if (storage.activeHotspotId === h.id) {
-      setStorage((prev) => ({ ...prev, activeHotspotId: null }));
-    }
+    setConfirmAction({
+      title: "Eliminar hotspot",
+      description: "¿Eliminar hotspot de este vehículo?",
+      onConfirm: () => {
+        updateSceneHotspots((prev) => prev.filter((p) => p.id !== h.id));
+        if (storage.activeHotspotId === h.id) {
+          setStorage((prev) => ({ ...prev, activeHotspotId: null }));
+        }
+      },
+    });
   };
 
   const changeHotspotVehicle = (h: Hotspot, vehicleId: string) => {
@@ -854,6 +897,19 @@ export function SceneEditorSection({
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+        title={confirmAction?.title ?? ""}
+        description={confirmAction?.description}
+        confirmLabel="Confirmar"
+        variant="danger"
+        onConfirm={() => {
+          confirmAction?.onConfirm();
+          setConfirmAction(null);
+        }}
+      />
     </div>
   );
 }

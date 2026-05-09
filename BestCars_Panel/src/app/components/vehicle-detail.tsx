@@ -11,6 +11,7 @@ import { X, Pencil, Save, Calendar, TrendingDown, TrendingUp, Video, Play, Eye, 
 import { Vehicle } from '../data/mock-data';
 import { uploadVehicleImage } from '../../services/api';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { ConfirmDialog } from './confirm-dialog';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface VehicleDetailProps {
@@ -119,6 +120,7 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
   const [model, setModel] = useState(vehicle.model);
   const [year, setYear] = useState(vehicle.year);
   const [price, setPrice] = useState(vehicle.price);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [specs, setSpecs] = useState(vehicle.specs ?? defaultSpecs);
   const [tags, setTags] = useState<string[]>(vehicle.tags ?? []);
   const [showAddImage, setShowAddImage] = useState(false);
@@ -341,18 +343,23 @@ export function VehicleDetail({ vehicle, onClose, onUpdate, onWebPreview, onDele
           <div className="flex items-center gap-3">
               {onDelete && (
                 <button
-                  onClick={() => {
-                    if (window.confirm(`¿Eliminar el vehículo "${vehicle.name}"? Esta acción no se puede deshacer.`)) {
-                      void onDelete(vehicle.id);
-                    }
-                  }}
+                  onClick={() => setShowDeleteConfirm(true)}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/40 hover:bg-red-500/30 text-red-200 transition-colors whitespace-nowrap"
-                  title="Eliminar vehículo"
+                  aria-label={`Eliminar vehículo ${vehicle.name}`}
                 >
                   <Trash2 className="w-4 h-4" />
                   Eliminar vehículo
                 </button>
               )}
+              <ConfirmDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+                title={`Eliminar "${vehicle.name}"`}
+                description="Esta accion no se puede deshacer."
+                confirmLabel="Eliminar"
+                variant="danger"
+                onConfirm={() => onDelete?.(vehicle.id)}
+              />
               <button
                 onClick={onClose}
                 className="p-2 rounded-xl hover:bg-white/10 transition-colors"

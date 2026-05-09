@@ -26,7 +26,7 @@ export function LoginPage() {
       const isInvalidCreds = /invalid|credenciales|401/i.test(msg);
       toast.error(
         isInvalidCreds
-          ? "Usuario o contraseña incorrectos. Por defecto: admin / admin. En Railway configura ADMIN_PASSWORD en el backend."
+          ? "Usuario o contraseña incorrectos"
           : msg
       );
     } finally {
@@ -103,9 +103,11 @@ export function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-xs text-white/40 text-center">
-          Por defecto: usuario y contraseña <strong>admin</strong>
-        </p>
+        {import.meta.env.DEV && (
+          <p className="mt-6 text-xs text-white/40 text-center">
+            Dev: usuario y contraseña <strong>admin</strong>
+          </p>
+        )}
       </motion.div>
     </div>
   );
