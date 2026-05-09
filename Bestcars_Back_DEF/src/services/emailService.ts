@@ -8,9 +8,19 @@
 
 import sgMail from '@sendgrid/mail';
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || 'dev@theaibusiness.com';
-const RECIPIENT_EMAIL = process.env.RECIPIENT_EMAIL || 'dev@theaibusiness.com';
+const isProduction = process.env.NODE_ENV === 'production';
+const FROM_EMAIL = process.env.FROM_EMAIL || (isProduction ? '' : 'dev@theaibusiness.com');
+const RECIPIENT_EMAIL = process.env.RECIPIENT_EMAIL || (isProduction ? '' : 'dev@theaibusiness.com');
 
 // Inicializar SendGrid con la API key
 if (SENDGRID_API_KEY) {
@@ -38,8 +48,14 @@ export async function sendContactEmail(data: ContactEmailData): Promise<void> {
     );
   }
 
-  const vehicleInfo = data.vehicleTitle
-    ? `Vehículo de interés: ${data.vehicleTitle}`
+  const safeName = escapeHtml(data.name);
+  const safeEmail = escapeHtml(data.email);
+  const safePhone = data.phone ? escapeHtml(data.phone) : '';
+  const safeMessage = data.message ? escapeHtml(data.message) : '';
+  const safeVehicleTitle = data.vehicleTitle ? escapeHtml(data.vehicleTitle) : '';
+
+  const vehicleInfo = safeVehicleTitle
+    ? `Vehículo de interés: ${safeVehicleTitle}`
     : 'No se especificó un vehículo';
 
   const emailContent = `
@@ -57,7 +73,7 @@ ${data.message ? `Mensaje:\n${data.message}` : ''}
   const msg = {
     to: RECIPIENT_EMAIL,
     from: FROM_EMAIL,
-    subject: `Nueva consulta de contacto - ${data.name}`,
+    subject: `Nueva consulta de contacto - ${safeName}`,
     text: emailContent,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -65,17 +81,17 @@ ${data.message ? `Mensaje:\n${data.message}` : ''}
           Nueva solicitud de información
         </h2>
         <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 10px 0;"><strong>Nombre:</strong> ${data.name}</p>
-          <p style="margin: 10px 0;"><strong>Email:</strong> <a href="mailto:${data.email}">${data.email}</a></p>
-          ${data.phone ? `<p style="margin: 10px 0;"><strong>Teléfono:</strong> <a href="tel:${data.phone}">${data.phone}</a></p>` : ''}
+          <p style="margin: 10px 0;"><strong>Nombre:</strong> ${safeName}</p>
+          <p style="margin: 10px 0;"><strong>Email:</strong> <a href="mailto:${safeEmail}">${safeEmail}</a></p>
+          ${safePhone ? `<p style="margin: 10px 0;"><strong>Teléfono:</strong> <a href="tel:${safePhone}">${safePhone}</a></p>` : ''}
         </div>
         <div style="background-color: #e8f4f8; padding: 15px; border-radius: 8px; margin: 20px 0;">
           <p style="margin: 0;"><strong>${vehicleInfo}</strong></p>
         </div>
-        ${data.message ? `
+        ${safeMessage ? `
         <div style="background-color: #ffffff; padding: 15px; border-left: 4px solid #0066cc; margin: 20px 0;">
           <p style="margin: 0 0 10px 0;"><strong>Mensaje:</strong></p>
-          <p style="margin: 0; white-space: pre-wrap;">${data.message}</p>
+          <p style="margin: 0; white-space: pre-wrap;">${safeMessage}</p>
         </div>
         ` : ''}
       </div>
@@ -108,8 +124,15 @@ export async function sendTestDriveEmail(data: TestDriveEmailData): Promise<void
     );
   }
 
-  const vehicleInfo = data.vehicleTitle
-    ? `Vehículo de interés: ${data.vehicleTitle}`
+  const safeName = escapeHtml(data.name);
+  const safeAge = escapeHtml(data.age);
+  const safeLastVehicle = escapeHtml(data.lastVehicle);
+  const safeInterests = escapeHtml(data.interests);
+  const safeMainUse = escapeHtml(data.mainUse);
+  const safeVehicleTitle = data.vehicleTitle ? escapeHtml(data.vehicleTitle) : '';
+
+  const vehicleInfo = safeVehicleTitle
+    ? `Vehículo de interés: ${safeVehicleTitle}`
     : 'No se especificó un vehículo';
 
   const emailContent = `
@@ -127,7 +150,7 @@ ${vehicleInfo}
   const msg = {
     to: RECIPIENT_EMAIL,
     from: FROM_EMAIL,
-    subject: `Nueva solicitud de prueba de manejo - ${data.name}`,
+    subject: `Nueva solicitud de prueba de manejo - ${safeName}`,
     text: emailContent,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -135,11 +158,11 @@ ${vehicleInfo}
           Nueva solicitud de prueba de manejo
         </h2>
         <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 10px 0;"><strong>Nombre:</strong> ${data.name}</p>
-          <p style="margin: 10px 0;"><strong>Edad:</strong> ${data.age}</p>
-          <p style="margin: 10px 0;"><strong>Último vehículo:</strong> ${data.lastVehicle}</p>
-          <p style="margin: 10px 0;"><strong>¿Qué quiere saber sobre el coche?:</strong> ${data.interests}</p>
-          <p style="margin: 10px 0;"><strong>¿Qué uso le va a dar?:</strong> ${data.mainUse}</p>
+          <p style="margin: 10px 0;"><strong>Nombre:</strong> ${safeName}</p>
+          <p style="margin: 10px 0;"><strong>Edad:</strong> ${safeAge}</p>
+          <p style="margin: 10px 0;"><strong>Último vehículo:</strong> ${safeLastVehicle}</p>
+          <p style="margin: 10px 0;"><strong>¿Qué quiere saber sobre el coche?:</strong> ${safeInterests}</p>
+          <p style="margin: 10px 0;"><strong>¿Qué uso le va a dar?:</strong> ${safeMainUse}</p>
         </div>
         <div style="background-color: #e8f4f8; padding: 15px; border-radius: 8px; margin: 20px 0;">
           <p style="margin: 0;"><strong>${vehicleInfo}</strong></p>

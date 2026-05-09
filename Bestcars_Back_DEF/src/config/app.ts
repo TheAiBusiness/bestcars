@@ -23,7 +23,18 @@ app.set('trust proxy', 1);
 // Seguridad: cabeceras HTTP. CORP "cross-origin" para que las imágenes carguen tras túnel Cloudflare.
 app.use(
   helmet({
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", 'https:'],
+        fontSrc: ["'self'", 'https:', 'data:'],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
@@ -54,7 +65,7 @@ function corsOrigin(origin: string | undefined, cb: (err: Error | null, allow?: 
     cb(null, corsOrigins.includes(origin));
     return;
   }
-  cb(null, true);
+  cb(null, isDev);
 }
 
 app.use(

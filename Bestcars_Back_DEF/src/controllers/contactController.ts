@@ -135,7 +135,7 @@ export const submitContact = async (
       res.status(201).json({
         success: true,
         message: 'Contact submission received, but email notification failed',
-        id: Math.floor(Math.random() * 1000),
+        id: submissionId,
         warning: 'Email notification could not be sent',
       });
       return;
@@ -144,7 +144,7 @@ export const submitContact = async (
     res.status(201).json({
       success: true,
       message: 'Contact submission received and email sent successfully',
-      id: typeof submissionId === 'number' ? submissionId : Math.floor(Math.random() * 1000),
+      id: submissionId,
     });
   } catch (error) {
     console.error('[contactController] Error:', error);

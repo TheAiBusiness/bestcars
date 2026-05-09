@@ -2,6 +2,7 @@ import { type Request, type Response } from 'express';
 import { timingSafeEqual } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import bcrypt from 'bcrypt';
 import { signAdminToken } from '../middleware/auth.js';
 
 interface LoginBody {
@@ -12,6 +13,20 @@ interface LoginBody {
 interface ChangePasswordBody {
   currentPassword: string;
   newPassword: string;
+}
+
+const isProduction = process.env.NODE_ENV === 'production';
+const BCRYPT_ROUNDS = 12;
+
+if (isProduction) {
+  if (!process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD === 'admin') {
+    console.error('FATAL: ADMIN_PASSWORD must be set to a strong value in production');
+    process.exit(1);
+  }
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'bestcars-panel-secret-change-in-production') {
+    console.error('FATAL: JWT_SECRET must be set to a strong value in production');
+    process.exit(1);
+  }
 }
 
 function safeEquals(a: string, b: string): boolean {
@@ -32,10 +47,17 @@ function getAdminPassword(): string {
       // fallback to env
     }
   }
+  if (isProduction) {
+    return process.env.ADMIN_PASSWORD!;
+  }
   return process.env.ADMIN_PASSWORD ?? 'admin';
 }
 
-export const login = (req: Request<object, object, LoginBody>, res: Response): void => {
+function isHashedPassword(password: string): boolean {
+  return password.startsWith('$2b$') || password.startsWith('$2a$');
+}
+
+export const login = async (req: Request<object, object, LoginBody>, res: Response): Promise<void> => {
   const { username, password } = req.body ?? ({} as LoginBody);
 
   if (!username || !password) {
@@ -48,11 +70,13 @@ export const login = (req: Request<object, object, LoginBody>, res: Response): v
     return;
   }
 
-  const adminUser = process.env.ADMIN_USERNAME ?? 'admin';
+  const adminUser = isProduction ? process.env.ADMIN_USERNAME! : (process.env.ADMIN_USERNAME ?? 'admin');
   const adminPass = getAdminPassword();
 
   const okUser = safeEquals(username, adminUser);
-  const okPass = safeEquals(password, adminPass);
+  const okPass = isHashedPassword(adminPass)
+    ? await bcrypt.compare(password, adminPass)
+    : safeEquals(password, adminPass);
 
   if (!okUser || !okPass) {
     res.status(401).json({
@@ -68,7 +92,7 @@ export const login = (req: Request<object, object, LoginBody>, res: Response): v
   res.json({ token, role: 'admin' });
 };
 
-export const changePassword = (req: Request<object, object, ChangePasswordBody>, res: Response): void => {
+export const changePassword = async (req: Request<object, object, ChangePasswordBody>, res: Response): Promise<void> => {
   const { currentPassword, newPassword } = req.body ?? ({} as ChangePasswordBody);
 
   if (!currentPassword || !newPassword || typeof newPassword !== 'string') {
@@ -77,7 +101,11 @@ export const changePassword = (req: Request<object, object, ChangePasswordBody>,
   }
 
   const adminPass = getAdminPassword();
-  if (!safeEquals(currentPassword, adminPass)) {
+  const currentOk = isHashedPassword(adminPass)
+    ? await bcrypt.compare(currentPassword, adminPass)
+    : safeEquals(currentPassword, adminPass);
+
+  if (!currentOk) {
     res.status(400).json({ error: { message: 'Contraseña actual incorrecta', code: 'AUTH_INVALID' } });
     return;
   }
@@ -89,7 +117,8 @@ export const changePassword = (req: Request<object, object, ChangePasswordBody>,
   }
 
   try {
-    writeFileSync(ADMIN_PASSWORD_FILE, trimmed, 'utf8');
+    const hashed = await bcrypt.hash(trimmed, BCRYPT_ROUNDS);
+    writeFileSync(ADMIN_PASSWORD_FILE, hashed, 'utf8');
     res.json({ success: true, message: 'Contraseña actualizada' });
   } catch (err) {
     res.status(500).json({ error: { message: 'No se pudo guardar la contraseña', code: 'INTERNAL_ERROR' } });
