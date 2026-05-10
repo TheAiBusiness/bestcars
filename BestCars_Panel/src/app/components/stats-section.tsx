@@ -1,8 +1,4 @@
-/**
- * Sección de estadísticas y rendimiento.
- * Gráficos de vistas, clics, leads, conversión y top performers.
- */
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { TrendingUp, Eye, MousePointer, Users, ChartBar, Filter, Calendar } from 'lucide-react';
 import { subDays, parseISO, isAfter } from 'date-fns';
@@ -18,8 +14,6 @@ import {
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -30,12 +24,170 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+
 interface StatsSectionProps {
   vehicles: Vehicle[];
 }
 
+const tooltipStyle = {
+  backgroundColor: 'rgba(0,0,0,0.9)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '12px',
+  color: 'white',
+};
+
+const legendStyle = { color: 'rgba(255,255,255,0.7)' };
+
+const VehiclePerformanceChart = memo(function VehiclePerformanceChart({
+  data,
+}: {
+  data: { name: string; vistas: number; clics: number; leads: number }[];
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.4 }}
+      className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
+    >
+      <h3 className="text-lg text-white mb-6">Rendimiento por Vehículo</h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+          <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" style={{ fontSize: 12 }} />
+          <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: 12 }} />
+          <Tooltip contentStyle={tooltipStyle} />
+          <Legend wrapperStyle={legendStyle} />
+          <Bar dataKey="vistas" fill="#60a5fa" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="clics" fill="#a78bfa" radius={[8, 8, 0, 0]} />
+          <Bar dataKey="leads" fill="#34d399" radius={[8, 8, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </motion.div>
+  );
+});
+
+const StatusDistributionChart = memo(function StatusDistributionChart({
+  data,
+}: {
+  data: { name: string; value: number; color: string }[];
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5 }}
+      className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
+    >
+      <h3 className="text-lg text-white mb-6">Distribución de Stock</h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={data}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={100}
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.color} />
+            ))}
+          </Pie>
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'hsla(0, 3.70%, 78.80%, 0.87)',
+              border: '1px solid rgba(0, 0, 0, 0.77)',
+              borderRadius: '12px',
+              padding: '10px',
+              fontSize: '12px',
+              color: 'white',
+            }}
+          />
+          <Legend wrapperStyle={legendStyle} />
+        </PieChart>
+      </ResponsiveContainer>
+    </motion.div>
+  );
+});
+
+const InteractivePerformanceChart = memo(function InteractivePerformanceChart({
+  data,
+}: {
+  data: { name: string; vistas: number; leads: number; reservas: number; ventas: number }[];
+}) {
+  if (data.length === 0) {
+    return (
+      <div className="h-[300px] flex items-center justify-center text-white/50">
+        No hay vehículos que coincidan con los filtros seleccionados.
+      </div>
+    );
+  }
+  return (
+    <ResponsiveContainer width="100%" height={320}>
+      <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+        <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" style={{ fontSize: 11 }} tick={{ fill: 'rgba(255,255,255,0.7)' }} />
+        <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: 11 }} tick={{ fill: 'rgba(255,255,255,0.7)' }} />
+        <Tooltip
+          contentStyle={tooltipStyle}
+          formatter={(value: number, name: string) => [
+            name === 'reservas' || name === 'ventas' ? (value ? 'Sí' : 'No') : value.toLocaleString(),
+            { vistas: 'Vistas', leads: 'Leads', reservas: 'Reservado', ventas: 'Vendido' }[name] ?? name,
+          ]}
+        />
+        <Legend wrapperStyle={legendStyle} />
+        <Bar dataKey="vistas" name="Vistas" fill="#60a5fa" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="leads" name="Leads" fill="#34d399" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="reservas" name="Reservado" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+        <Bar dataKey="ventas" name="Vendido" fill="#ef4444" radius={[6, 6, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+});
+
+const TopPerformers = memo(function TopPerformers({ vehicles }: { vehicles: Vehicle[] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.7 }}
+      className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
+    >
+      <h3 className="text-lg text-white mb-6">Top 3 Mejor Conversión</h3>
+      <div className="space-y-4">
+        {vehicles.map((vehicle, index) => {
+          const conversion = vehicle.views > 0 ? ((vehicle.leads / vehicle.views) * 100).toFixed(2) : '0.00';
+          const medals = ['🥇', '🥈', '🥉'];
+          return (
+            <div
+              key={vehicle.id}
+              className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/10"
+            >
+              <span className="text-3xl">{medals[index]}</span>
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
+                <ImageWithFallback src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-white mb-1">{vehicle.name}</h4>
+                <p className="text-sm text-white/50">
+                  {vehicle.views.toLocaleString()} vistas • {vehicle.leads} leads
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl text-green-400">{conversion}%</p>
+                <p className="text-xs text-white/50">conversión</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
+});
+
 export function StatsSection({ vehicles }: StatsSectionProps) {
-  // Datos para el gráfico de barras de rendimiento por vehículo
   const vehiclePerformance = useMemo(() => vehicles
     .sort((a, b) => b.leads - a.leads)
     .slice(0, 6)
@@ -45,11 +197,6 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
       clics: v.clicks,
       leads: v.leads,
     })), [vehicles]);
-
-  const conversionData = useMemo(() => vehicles.map((v) => ({
-    name: v.brand,
-    conversion: v.views > 0 ? ((v.leads / v.views) * 100).toFixed(2) : "0",
-  })), [vehicles]);
 
   const statusData = useMemo(() => [
     { name: "Disponible", value: vehicles.filter((v) => v.status === "disponible").length, color: "#10b981" },
@@ -77,7 +224,6 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
     })
     .slice(0, 3), [vehicles]);
 
-  // Filtros para el gráfico de rendimiento de coches
   const [dateRange, setDateRange] = useState<'all' | '7d' | '30d' | '90d'>('all');
   const [brandFilter, setBrandFilter] = useState<string>('all');
   const [modelFilter, setModelFilter] = useState<string>('all');
@@ -132,7 +278,6 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
 
   return (
     <div className="p-8">
-      {/* Top Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -225,77 +370,11 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
         </motion.div>
       </div>
 
-      {/* Charts Grid */}
       <div className="grid grid-cols-2 gap-6 mb-8">
-        {/* Vehicle Performance */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg text-white mb-6">Rendimiento por Vehículo</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={vehiclePerformance}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" style={{ fontSize: 12 }} />
-              <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(0,0,0,0.9)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
-                  color: 'white',
-                }}
-              />
-              <Legend wrapperStyle={{ color: 'rgba(255,255,255,0.7)' }} />
-              <Bar dataKey="vistas" fill="#60a5fa" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="clics" fill="#a78bfa" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="leads" fill="#34d399" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Status Distribution */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
-        >
-          <h3 className="text-lg text-white mb-6">Distribución de Stock</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'hsla(0, 3.70%, 78.80%, 0.87)',
-                  border: '1px solid rgba(0, 0, 0, 0.77)',
-                  borderRadius: '12px',
-                  padding: '10px',
-                  fontSize: '12px',
-                  color: 'white',
-                }}
-              />
-              <Legend wrapperStyle={{ color: 'rgba(255,255,255,0.7)' }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </motion.div>
+        <VehiclePerformanceChart data={vehiclePerformance} />
+        <StatusDistributionChart data={statusData} />
       </div>
 
-      {/* Rendimiento de Coches — gráfico interactivo */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -351,75 +430,10 @@ export function StatsSection({ vehicles }: StatsSectionProps) {
             </div>
           </div>
         </div>
-        {performanceChartData.length === 0 ? (
-          <div className="h-[300px] flex items-center justify-center text-white/50">
-            No hay vehículos que coincidan con los filtros seleccionados.
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={performanceChartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" style={{ fontSize: 11 }} tick={{ fill: 'rgba(255,255,255,0.7)' }} />
-              <YAxis stroke="rgba(255,255,255,0.4)" style={{ fontSize: 11 }} tick={{ fill: 'rgba(255,255,255,0.7)' }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(0,0,0,0.9)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: '12px',
-                  color: 'white',
-                }}
-                formatter={(value: number, name: string) => [
-                  name === 'reservas' || name === 'ventas' ? (value ? 'Sí' : 'No') : value.toLocaleString(),
-                  { vistas: 'Vistas', leads: 'Leads', reservas: 'Reservado', ventas: 'Vendido' }[name] ?? name,
-                ]}
-              />
-              <Legend wrapperStyle={{ color: 'rgba(255,255,255,0.7)' }} />
-              <Bar dataKey="vistas" name="Vistas" fill="#60a5fa" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="leads" name="Leads" fill="#34d399" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="reservas" name="Reservado" fill="#f59e0b" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="ventas" name="Vendido" fill="#ef4444" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+        <InteractivePerformanceChart data={performanceChartData} />
       </motion.div>
 
-      {/* Top Performers */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-xl p-6"
-      >
-        <h3 className="text-lg text-white mb-6">Top 3 Mejor Conversión</h3>
-        <div className="space-y-4">
-          {topPerformers.map((vehicle, index) => {
-            const conversion = vehicle.views > 0 ? ((vehicle.leads / vehicle.views) * 100).toFixed(2) : '0.00';
-            const medals = ['🥇', '🥈', '🥉'];
-            
-            return (
-              <div
-                key={vehicle.id}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.03] border border-white/10"
-              >
-                <span className="text-3xl">{medals[index]}</span>
-                <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
-                  <ImageWithFallback src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-white mb-1">{vehicle.name}</h4>
-                  <p className="text-sm text-white/50">
-                    {vehicle.views.toLocaleString()} vistas • {vehicle.leads} leads
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl text-green-400">{conversion}%</p>
-                  <p className="text-xs text-white/50">conversión</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </motion.div>
+      <TopPerformers vehicles={topPerformers} />
     </div>
   );
 }

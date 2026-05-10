@@ -147,7 +147,8 @@ export default function App() {
               : "flex-1 overflow-y-auto"
           }
         >
-          {loading && (activeSection === "stock" ? <StockSkeleton /> : activeSection === "leads" ? <LeadsSkeleton /> : <StockSkeleton />)}
+          {loading && activeSection === "stock" && <StockSkeleton />}
+          {loading && activeSection === "leads" && <LeadsSkeleton />}
           <ErrorBoundary key={activeSection}>
             {!loading && activeSection === "stock" && (
               <StockSection
@@ -166,8 +167,8 @@ export default function App() {
                 onLeadDelete={handleLeadDelete}
               />
             )}
-            {activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
-            {activeSection === "scene" && (
+            {!loading && activeSection === "stats" && <StatsSection vehicles={filteredVehicles} />}
+            {!loading && activeSection === "scene" && (
               <SceneEditorSection
                 vehicles={vehicles}
                 searchQuery={searchQuery}
@@ -175,7 +176,7 @@ export default function App() {
                 isAuthenticated={!!token}
               />
             )}
-            {activeSection === "settings" && <SettingsSection />}
+            {!loading && activeSection === "settings" && <SettingsSection />}
             {!loading && activeSection === "webpreview" && (
               <WebPreviewSection
                 vehicles={filteredVehicles}

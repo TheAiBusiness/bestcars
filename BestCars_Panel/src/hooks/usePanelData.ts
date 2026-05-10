@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import type { Vehicle, Lead } from "../app/data/mock-data";
 import { mockVehicles, mockLeads } from "../app/data/mock-data";
@@ -94,17 +94,30 @@ export function usePanelData(apiMode: boolean, isAuthenticated: boolean) {
     [apiMode, isAuthenticated, setVehiclesState]
   );
 
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const pendingReorderRef = useRef<Vehicle[]>();
+
   const handleVehicleReorder = useCallback(
-    async (reorderedVehicles: Vehicle[]) => {
+    (reorderedVehicles: Vehicle[]) => {
       const updated = reorderedVehicles.map((v, i) => ({ ...v, priority: i + 1 }));
       setVehiclesState(updated);
+
       if (apiMode && isAuthenticated) {
-        try {
-          await Promise.all(updated.map((v, i) => updateVehicle(v.id, { priority: i + 1 })));
-          toast.success("Orden actualizado");
-        } catch (err) {
-          toast.error(err instanceof Error ? err.message : "Error al actualizar orden");
-        }
+        pendingReorderRef.current = updated;
+        clearTimeout(reorderTimerRef.current);
+        reorderTimerRef.current = setTimeout(async () => {
+          const toSync = pendingReorderRef.current;
+          if (!toSync) return;
+          pendingReorderRef.current = undefined;
+          try {
+            for (const v of toSync) {
+              await updateVehicle(v.id, { priority: v.priority });
+            }
+            toast.success("Orden actualizado");
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Error al actualizar orden");
+          }
+        }, 500);
       }
     },
     [apiMode, isAuthenticated, setVehiclesState]

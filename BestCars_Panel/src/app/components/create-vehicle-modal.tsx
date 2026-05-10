@@ -1,13 +1,12 @@
-/**
- * Modal para crear un nuevo vehículo.
- * Formulario completo con datos básicos, especificaciones, imágenes y etiquetas.
- */
 import { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 import { X, Plus, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Vehicle } from "../data/mock-data";
 import { uploadVehicleImage } from "../../services/api";
+import { vehicleSchema, type VehicleFormData } from "../../schemas/vehicle";
 
 interface CreateVehicleModalProps {
   isOpen: boolean;
@@ -15,113 +14,94 @@ interface CreateVehicleModalProps {
   onSave: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'priority'>) => void;
 }
 
+const defaultValues: VehicleFormData = {
+  name: '',
+  brand: '',
+  model: '',
+  year: new Date().getFullYear(),
+  price: 0,
+  status: 'disponible',
+  image: '',
+  images: [],
+  specs: {
+    motor: '',
+    potencia: '',
+    combustible: '',
+    transmision: '',
+    kilometros: 0,
+    color: '',
+  },
+  description: '',
+  tags: [],
+  views: 0,
+  clicks: 0,
+  leads: 0,
+  videoUrl: '',
+  videoDuration: '',
+  videoViews: 0,
+  priceHistory: [],
+};
+
 export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    brand: '',
-    model: '',
-    year: new Date().getFullYear(),
-    price: 0,
-    status: 'disponible' as 'disponible' | 'reservado' | 'vendido',
-    image: '',
-    images: [] as string[],
-    specs: {
-      motor: '',
-      potencia: '',
-      combustible: '',
-      transmision: '',
-      kilometros: 0,
-      color: '',
-    },
-    description: '',
-    tags: [] as string[],
-    views: 0,
-    clicks: 0,
-    leads: 0,
-    videoUrl: '',
-    videoDuration: '',
-    videoViews: 0,
-    priceHistory: [] as { date: string; price: number }[],
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<VehicleFormData>({
+    resolver: zodResolver(vehicleSchema),
+    defaultValues,
   });
+
+  const images = watch("images");
+  const tags = watch("tags");
+  const status = watch("status");
 
   const [currentTag, setCurrentTag] = useState('');
   const [currentImage, setCurrentImage] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validación de campos obligatorios
-    if (!formData.name?.trim() || !formData.brand?.trim() || !formData.model?.trim() || !formData.price) {
-      toast.error("Completa los campos obligatorios: Nombre, Marca, Modelo y Precio");
-      return;
-    }
-
+  const onValid = useCallback((data: VehicleFormData) => {
     const vehicle = {
-      ...formData,
-      image: formData.images[0] || formData.image || 'https://images.unsplash.com/photo-1696581084306-591db2e1af14?w=1080',
-      priceHistory: [{ date: new Date().toISOString().split('T')[0], price: formData.price }],
+      ...data,
+      image: data.images[0] || data.image || 'https://images.unsplash.com/photo-1696581084306-591db2e1af14?w=1080',
+      priceHistory: [{ date: new Date().toISOString().split('T')[0], price: data.price }],
     };
-
     onSave(vehicle);
     onClose();
-    resetForm();
-  }, [formData, onClose, onSave]);
-
-  const resetForm = useCallback(() => {
-    setFormData({
-      name: '',
-      brand: '',
-      model: '',
-      year: new Date().getFullYear(),
-      price: 0,
-      status: 'disponible',
-      image: '',
-      images: [],
-      specs: {
-        motor: '',
-        potencia: '',
-        combustible: '',
-        transmision: '',
-        kilometros: 0,
-        color: '',
-      },
-      description: '',
-      tags: [],
-      views: 0,
-      clicks: 0,
-      leads: 0,
-      videoUrl: '',
-      videoDuration: '',
-      videoViews: 0,
-      priceHistory: [],
-    });
+    reset(defaultValues);
     setCurrentTag("");
     setCurrentImage("");
-    setUploadingImage(false);
-  }, []);
+  }, [onClose, onSave, reset]);
+
+  const onInvalid = useCallback(() => {
+    const firstError = Object.values(errors)[0];
+    toast.error(firstError?.message?.toString() || "Completa los campos obligatorios");
+  }, [errors]);
 
   const addTag = useCallback(() => {
-    if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
-      setFormData((prev) => ({ ...prev, tags: [...prev.tags, currentTag.trim()] }));
+    if (currentTag.trim() && !tags.includes(currentTag.trim())) {
+      setValue("tags", [...tags, currentTag.trim()]);
       setCurrentTag("");
     }
-  }, [currentTag, formData.tags]);
+  }, [currentTag, tags, setValue]);
 
   const removeTag = useCallback((tag: string) => {
-    setFormData((prev) => ({ ...prev, tags: prev.tags.filter((t) => t !== tag) }));
-  }, []);
+    setValue("tags", tags.filter((t) => t !== tag));
+  }, [tags, setValue]);
 
   const addImage = useCallback(() => {
-    if (currentImage.trim() && !formData.images.includes(currentImage.trim())) {
-      setFormData((prev) => ({ ...prev, images: [...prev.images, currentImage.trim()] }));
+    if (currentImage.trim() && !images.includes(currentImage.trim())) {
+      setValue("images", [...images, currentImage.trim()]);
       setCurrentImage("");
     }
-  }, [currentImage, formData.images]);
+  }, [currentImage, images, setValue]);
 
   const removeImage = useCallback((index: number) => {
-    setFormData((prev) => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
-  }, []);
+    setValue("images", images.filter((_, i) => i !== index));
+  }, [images, setValue]);
 
   const handleImageFiles = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const list = e.target.files;
@@ -139,10 +119,10 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
     try {
       for (const file of imageFiles) {
         const { url } = await uploadVehicleImage(file);
-        setFormData((prev) => ({
-          ...prev,
-          images: prev.images.includes(url) ? prev.images : [...prev.images, url],
-        }));
+        const current = watch("images");
+        if (!current.includes(url)) {
+          setValue("images", [...current, url]);
+        }
       }
       toast.success(imageFiles.length === 1 ? "Imagen subida" : `${imageFiles.length} imágenes subidas`);
     } catch (err) {
@@ -150,14 +130,16 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
     } finally {
       setUploadingImage(false);
     }
-  }, []);
+  }, [setValue, watch]);
 
   if (!isOpen) return null;
+
+  const inputClass = "w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50";
+  const errorClass = "text-xs text-red-400 mt-1";
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -166,14 +148,12 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
           className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         />
 
-        {/* Modal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 bg-gradient-to-br from-black/90 to-black/80 backdrop-blur-2xl"
         >
-          {/* Header */}
           <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b border-white/10 bg-black/50 backdrop-blur-xl">
             <h2 className="text-2xl text-white">Crear Vehículo Nuevo</h2>
             <button
@@ -184,9 +164,7 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
             </button>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Basic Info */}
+          <form onSubmit={handleSubmit(onValid, onInvalid)} className="p-6 space-y-6">
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Información Básica</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -194,54 +172,49 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <label className="block text-sm text-white/60 mb-2">Nombre Completo *</label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    {...register("name")}
                     placeholder="Ej: Porsche 911 Carrera S"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
-                    required
+                    className={inputClass}
                   />
+                  {errors.name && <p className={errorClass}>{errors.name.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Marca *</label>
                   <input
                     type="text"
-                    value={formData.brand}
-                    onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                    {...register("brand")}
                     placeholder="Ej: Porsche"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
-                    required
+                    className={inputClass}
                   />
+                  {errors.brand && <p className={errorClass}>{errors.brand.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Modelo *</label>
                   <input
                     type="text"
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                    {...register("model")}
                     placeholder="Ej: 911 Carrera S"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
-                    required
+                    className={inputClass}
                   />
+                  {errors.model && <p className={errorClass}>{errors.model.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Año</label>
                   <input
                     type="number"
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    {...register("year", { valueAsNumber: true })}
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Precio (€) *</label>
                   <input
                     type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    {...register("price", { valueAsNumber: true })}
                     placeholder="125000"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
-                    required
+                    className={inputClass}
                   />
+                  {errors.price && <p className={errorClass}>{errors.price.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Estado</label>
@@ -251,12 +224,12 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                       { value: "reservado",  bg: "#F59E0B", label: "Reservado",  icon: "⏳" },
                       { value: "vendido",    bg: "#EF4444", label: "Vendido",    icon: "✕" },
                     ] as const).map((opt) => {
-                      const isActive = formData.status === opt.value;
+                      const isActive = status === opt.value;
                       return (
                         <button
                           key={opt.value}
                           type="button"
-                          onClick={() => setFormData({ ...formData, status: opt.value as any })}
+                          onClick={() => setValue("status", opt.value)}
                           className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border transition-all"
                           style={isActive
                             ? { backgroundColor: opt.bg, borderColor: opt.bg, color: "#fff" }
@@ -273,7 +246,6 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
               </div>
             </div>
 
-            {/* Specs */}
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Especificaciones</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -281,78 +253,69 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <label className="block text-sm text-white/60 mb-2">Motor</label>
                   <input
                     type="text"
-                    value={formData.specs.motor}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, motor: e.target.value } })}
+                    {...register("specs.motor")}
                     placeholder="Ej: 3.0L Twin-Turbo"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Potencia</label>
                   <input
                     type="text"
-                    value={formData.specs.potencia}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, potencia: e.target.value } })}
+                    {...register("specs.potencia")}
                     placeholder="Ej: 450 CV"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Combustible</label>
                   <input
                     type="text"
-                    value={formData.specs.combustible}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, combustible: e.target.value } })}
+                    {...register("specs.combustible")}
                     placeholder="Ej: Gasolina"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Transmisión</label>
                   <input
                     type="text"
-                    value={formData.specs.transmision}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, transmision: e.target.value } })}
+                    {...register("specs.transmision")}
                     placeholder="Ej: Automática PDK"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Kilómetros</label>
                   <input
                     type="number"
-                    value={formData.specs.kilometros}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, kilometros: parseInt(e.target.value) } })}
+                    {...register("specs.kilometros", { valueAsNumber: true })}
                     placeholder="5200"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Color</label>
                   <input
                     type="text"
-                    value={formData.specs.color}
-                    onChange={(e) => setFormData({ ...formData, specs: { ...formData.specs, color: e.target.value } })}
+                    {...register("specs.color")}
                     placeholder="Ej: Negro Metálico"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Description */}
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Descripción</h3>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                {...register("description")}
                 placeholder="Descripción detallada del vehículo..."
                 rows={4}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 resize-none"
+                className={`${inputClass} resize-none`}
               />
             </div>
 
-            {/* Images */}
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Imágenes</h3>
               <div className="flex flex-wrap items-center gap-3">
@@ -380,7 +343,7 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
                   placeholder="URL de imagen (Unsplash, etc.)"
                   disabled={uploadingImage}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
+                  className={`flex-1 ${inputClass} disabled:opacity-50`}
                 />
                 <button
                   type="button"
@@ -391,9 +354,9 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
-              {formData.images.length > 0 && (
+              {images.length > 0 && (
                 <div className="grid grid-cols-4 gap-3">
-                  {formData.images.map((img, index) => (
+                  {images.map((img, index) => (
                     <div key={index} className="relative group rounded-xl overflow-hidden border border-white/10">
                       <img src={img} alt={`Imagen ${index + 1}`} className="w-full h-24 object-cover" />
                       <button
@@ -409,7 +372,6 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
               )}
             </div>
 
-            {/* Tags */}
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Tags</h3>
               <div className="flex gap-2">
@@ -419,7 +381,7 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   onChange={(e) => setCurrentTag(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
                   placeholder="Añadir etiqueta..."
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                  className={inputClass}
                 />
                 <button
                   type="button"
@@ -429,9 +391,9 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
-              {formData.tags.length > 0 && (
+              {tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag, index) => (
+                  {tags.map((tag, index) => (
                     <span
                       key={index}
                       className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 flex items-center gap-2"
@@ -450,7 +412,6 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
               )}
             </div>
 
-            {/* Video (Optional) */}
             <div className="space-y-4">
               <h3 className="text-lg text-white/90">Video (Opcional)</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -458,26 +419,23 @@ export function CreateVehicleModal({ isOpen, onClose, onSave }: CreateVehicleMod
                   <label className="block text-sm text-white/60 mb-2">URL del Video</label>
                   <input
                     type="text"
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                    {...register("videoUrl")}
                     placeholder="video_nombre.mp4"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-white/60 mb-2">Duración</label>
                   <input
                     type="text"
-                    value={formData.videoDuration}
-                    onChange={(e) => setFormData({ ...formData, videoDuration: e.target.value })}
+                    {...register("videoDuration")}
                     placeholder="2:34"
-                    className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-blue-500/50"
+                    className={inputClass}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-4 pt-6 border-t border-white/10">
               <button
                 type="button"
