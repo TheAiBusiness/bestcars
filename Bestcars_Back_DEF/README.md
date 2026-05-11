@@ -30,8 +30,8 @@ Servidor en `http://localhost:3001`.
 | `CORS_ORIGINS` | Orígenes permitidos (separados por coma) | URL del frontend y del panel (ej. `https://tuweb.com,https://panel.tuweb.com`) |
 | `DATABASE_URL` | URL de PostgreSQL (Supabase). En Railway usa la del **pooler** (puerto 6543). Para `prisma db push` usa la conexión directa (5432) desde local. | **Requerida** para persistencia |
 | `JWT_SECRET` | Secreto para tokens del panel | **Cambiar** en producción |
-| `ADMIN_USERNAME` | Usuario login panel | Cambiar en producción |
-| `ADMIN_PASSWORD` | Contraseña login panel | Cambiar en producción |
+| `ADMIN_USERNAME` | Usuario admin inicial. Solo se usa para crear el primer admin en BD si la tabla `admins` está vacía. | Definir antes del primer despliegue |
+| `ADMIN_PASSWORD` | Contraseña del admin inicial. Solo se usa una vez para crear el primer admin en BD (se guarda hasheada con bcrypt). Tras el primer login el panel permite cambiarla, y la BD pasa a ser la fuente de verdad. | Definir antes del primer despliegue; se puede retirar después |
 | `SENDGRID_API_KEY` | API key SendGrid (emails) | Opcional; si falta, el formulario guarda pero no envía email |
 | `FROM_EMAIL` | Email remitente | - |
 | `RECIPIENT_EMAIL` | Email destinatario notificaciones | - |
@@ -103,7 +103,7 @@ Rutas con **Auth**: cabecera `Authorization: Bearer <token>` (token de `/api/aut
 2. **Variables de entorno** (Railway → Variables):
    - `DATABASE_URL`: URL de Supabase (PostgreSQL). En Supabase: Settings → Database → Connection string (modo Transaction).
    - `JWT_SECRET`: string aleatorio largo (ej. `openssl rand -base64 32`).
-   - `ADMIN_USERNAME` y `ADMIN_PASSWORD`: credenciales del panel.
+   - `ADMIN_USERNAME` y `ADMIN_PASSWORD`: solo se usan **una vez** para crear el primer admin en la tabla `admins`. Tras el primer login se puede cambiar la contraseña desde el panel y la BD pasa a ser la fuente de verdad; estas variables pueden eliminarse después.
    - `CORS_ORIGINS`: URLs del frontend y del panel separadas por coma (ej. `https://bestcars.com,https://panel.bestcars.com`).
    - Opcional: `SENDGRID_API_KEY`, `FROM_EMAIL`, `RECIPIENT_EMAIL` para emails.
 
@@ -119,7 +119,7 @@ Rutas con **Auth**: cabecera `Authorization: Bearer <token>` (token de `/api/aut
 
 5. **Health**: Railway puede usar `GET /api/health` o `GET /api/health/ready` para comprobar que el servicio está listo.
 
-6. **Cambio de contraseña (panel)**: La opción "Cambiar contraseña" del panel guarda la nueva contraseña en un archivo local (`.admin-password`). En Railway el filesystem es efímero: tras un redeploy ese archivo desaparece y la app vuelve a usar `ADMIN_PASSWORD` de variables de entorno. Para cambiar la contraseña en producción, actualiza la variable `ADMIN_PASSWORD` en Railway.
+6. **Cambio de contraseña (panel)**: La nueva contraseña se guarda hasheada (bcrypt) en la tabla `admins` de Postgres, por lo que persiste entre redeploys. La variable `ADMIN_PASSWORD` solo se usa para sembrar el primer admin si la tabla está vacía; cualquier cambio posterior tiene prioridad sobre el env.
 
 7. **Si obtienes 500 en `/api/vehicles` o `/api/scenes`**:
    - Comprueba que hayas ejecutado **una vez** `npx prisma db push` con la URL **directa** (puerto 5432) de Supabase; sin eso las tablas no existen.
